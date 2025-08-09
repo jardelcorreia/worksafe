@@ -4,9 +4,9 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { analyzeTrends as analyzeTrendsFlow } from '@/ai/flows/trend-spotter';
 import { riskForecaster as riskForecasterFlow } from '@/ai/flows/risk-forecaster';
-import { incidents } from './data';
-import type { SafetyIncident } from './types';
-import { incidentSchema } from './types';
+import { incidents, auditors } from './data';
+import type { SafetyIncident, Auditor } from './types';
+import { incidentSchema, auditorSchema } from './types';
 
 // Export types for use in client components
 export type { AnalyzeTrendsOutput } from '@/ai/flows/trend-spotter';
@@ -63,4 +63,24 @@ export async function addIncident(data: z.infer<typeof incidentSchema>) {
   revalidatePath('/incidents');
   revalidatePath('/dashboard');
   return { success: true, message: 'Incident added successfully.' };
+}
+
+export async function addAuditor(data: z.infer<typeof auditorSchema>) {
+  const newAuditor: Auditor = {
+    id: String(auditors.length + 1),
+    name: data.name,
+  };
+  auditors.push(newAuditor);
+  revalidatePath('/admin/auditors');
+  return { success: true, message: 'Auditor added successfully.' };
+}
+
+export async function deleteAuditor(id: string) {
+  const index = auditors.findIndex((a) => a.id === id);
+  if (index !== -1) {
+    auditors.splice(index, 1);
+    revalidatePath('/admin/auditors');
+    return { success: true, message: 'Auditor deleted successfully.' };
+  }
+  return { success: false, message: 'Auditor not found.' };
 }

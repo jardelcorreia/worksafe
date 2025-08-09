@@ -1,4 +1,14 @@
-import type { SafetyIncident } from './types';
+import type { SafetyIncident, Auditor } from './types';
+
+export const auditors: Auditor[] = [
+  { id: '1', name: 'Anderson José Silva' },
+  { id: '2', name: 'Jackson Ribeiro' },
+  { id: '3', name: 'Ozivan Torres' },
+  { id: '4', name: 'Ana Lucia' },
+  { id: '5', name: 'Diego Nogueira' },
+  { id: '6', name: 'Gerson Junior' },
+  { id: '7', name: 'Dieison Teixeira' },
+];
 
 export const incidents: SafetyIncident[] = [
   {

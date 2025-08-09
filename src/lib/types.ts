@@ -1,5 +1,10 @@
 import { z } from 'zod';
 
+export type Auditor = {
+  id: string;
+  name: string;
+};
+
 export type SafetyIncident = {
   id: string;
   timestamp: string;
@@ -37,4 +42,8 @@ export const incidentSchema = z.object({
   responsible: z.string().min(1, 'Responsible person/action is required.'),
   deadline: z.string(),
   status: z.enum(['Resolved', 'In Progress', 'Satisfactory']),
+});
+
+export const auditorSchema = z.object({
+  name: z.string().min(1, 'Auditor name is required.'),
 });

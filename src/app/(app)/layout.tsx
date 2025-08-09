@@ -9,6 +9,7 @@ import {
   List,
   ShieldCheck,
   PanelLeft,
+  Users,
 } from 'lucide-react';
 import {
   SidebarProvider,
@@ -50,6 +51,11 @@ const menuItems = [
     label: 'New Incident',
     icon: FilePlus2,
   },
+  {
+    href: '/admin/auditors',
+    label: 'Auditors',
+    icon: Users,
+  },
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -68,9 +74,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 <SidebarMenuButton
                   asChild
                   isActive={
-                    item.href === '/incidents'
-                      ? pathname.startsWith('/incidents')
-                      : pathname === item.href
+                    pathname.startsWith(item.href)
                   }
                   tooltip={item.label}
                 >

@@ -35,6 +35,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { addIncident } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { AreaLevels, PotentialLevels, StatusLevels, incidentSchema } from '@/lib/types';
+import { auditors } from '@/lib/data';
 
 export default function NewIncidentPage() {
   const router = useRouter();
@@ -86,9 +87,20 @@ export default function NewIncidentPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Auditor</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g. John Doe" {...field} />
-                    </FormControl>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select an auditor" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {auditors.map((auditor) => (
+                          <SelectItem key={auditor.id} value={auditor.name}>
+                            {auditor.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
