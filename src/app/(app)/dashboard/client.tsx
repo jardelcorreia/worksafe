@@ -102,7 +102,7 @@ export function DashboardClient() {
       {loading ? (
         <div className="flex items-center justify-center rounded-lg border border-dashed p-12">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="ml-4 text-lg">Analisando dados com IA...</p>
+          <p className="ml-4 text-lg">Atualizando insights com IA...</p>
         </div>
       ) : (
         <div className="grid gap-6 lg:grid-cols-2">
