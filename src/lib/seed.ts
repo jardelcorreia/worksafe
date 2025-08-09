@@ -1,7 +1,7 @@
 
 'use server';
 
-import { collection, addDoc, getDocs, query, where } from 'firebase/firestore';
+import { collection, addDoc, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { revalidatePath } from 'next/cache';
 
@@ -42,7 +42,7 @@ export async function seedRiskTypes() {
     );
 
     if (newRiskTypes.length === 0) {
-      return { success: true, count: 0, message: 'Todos os tipos de risco já estão cadastrados.' };
+      return { success: true, count: 0, message: 'Todos os tipos de risco padrão já estavam cadastrados no banco de dados.' };
     }
 
     const promises = newRiskTypes.map((name) =>
@@ -54,8 +54,9 @@ export async function seedRiskTypes() {
     revalidatePath('/incidents/new');
 
     return { success: true, count: newRiskTypes.length };
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error seeding risk types:', error);
-    return { success: false, message: 'Falha ao popular os tipos de risco.' };
+    const errorMessage = error.message || 'Ocorreu um erro desconhecido.';
+    return { success: false, message: `Falha ao popular os tipos de risco: ${errorMessage}` };
   }
 }
