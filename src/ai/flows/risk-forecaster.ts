@@ -12,15 +12,15 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const RiskForecasterInputSchema = z.object({
-  historicalData: z.string().describe('A string containing historical safety incident data in a readable format.'),
-  identifiedTrends: z.string().describe('A string containing identified trends from the historical data.'),
+  historicalData: z.string().describe('Uma string contendo dados históricos de incidentes de segurança em um formato legível.'),
+  identifiedTrends: z.string().describe('Uma string contendo as tendências identificadas a partir dos dados históricos.'),
 });
 export type RiskForecasterInput = z.infer<typeof RiskForecasterInputSchema>;
 
 const RiskForecasterOutputSchema = z.object({
-  predictedIncidents: z.string().describe('A string containing a description of potential future safety incidents.'),
-  reasoning: z.string().describe('A string containing the reasoning behind the predicted incidents, based on the historical data and identified trends.'),
-  preventativeActions: z.string().describe('A string containing suggested preventative actions to mitigate the predicted safety incidents.'),
+  predictedIncidents: z.string().describe('Uma descrição de potenciais futuros incidentes de segurança.'),
+  reasoning: z.string().describe('A justificativa para os incidentes previstos, com base nos dados históricos e nas tendências identificadas.'),
+  preventativeActions: z.string().describe('Sugestões de ações preventivas para mitigar os incidentes de segurança previstos.'),
 });
 export type RiskForecasterOutput = z.infer<typeof RiskForecasterOutputSchema>;
 
@@ -32,14 +32,16 @@ const prompt = ai.definePrompt({
   name: 'riskForecasterPrompt',
   input: {schema: RiskForecasterInputSchema},
   output: {schema: RiskForecasterOutputSchema},
-  prompt: `You are a safety expert tasked with predicting potential safety incidents based on historical data and identified trends.
+  prompt: `Você é um especialista em segurança encarregado de prever potenciais incidentes de segurança com base em dados históricos e tendências identificadas.
 
-  Historical Data: {{{historicalData}}}
-  Identified Trends: {{{identifiedTrends}}}
+  Responda em português brasileiro.
 
-  Based on the historical data and identified trends, predict potential future safety incidents, provide reasoning for your predictions, and suggest preventative actions to mitigate the predicted incidents.
+  Dados Históricos: {{{historicalData}}}
+  Tendências Identificadas: {{{identifiedTrends}}}
 
-  Output the predictedIncidents, reasoning, and preventativeActions in a well-structured and readable format.
+  Com base nos dados históricos e nas tendências identificadas, preveja potenciais incidentes de segurança futuros, forneça a justificativa para suas previsões e sugira ações preventivas para mitigar os incidentes previstos.
+
+  Apresente os incidentes previstos, a justificativa e as ações preventivas em um formato bem estruturado e de fácil leitura.
   `,
 });
 

@@ -13,12 +13,12 @@ import {z} from 'genkit';
 
 const AnalyzeTrendsInputSchema = z.array(
   z.object({
-    área: z.string().describe('The area where the incident occurred.'),
-    tipoDeSituaçãoDeRisco: z.string().describe('The type of risk situation.'),
-    potencial: z.string().describe('The potential risk level (e.g., Alto, Médio, Baixo, Sem Desvio).'),
+    área: z.string().describe('A área onde o incidente ocorreu.'),
+    tipoDeSituaçãoDeRisco: z.string().describe('O tipo de situação de risco.'),
+    potencial: z.string().describe('O nível de risco potencial (e.g., Alto, Médio, Baixo, Sem Desvio).'),
     descriçãoDaSituaçãoInsegura: z
       .string()
-      .describe('A detailed description of the unsafe situation.'),
+      .describe('Uma descrição detalhada da situação insegura.'),
   })
 );
 export type AnalyzeTrendsInput = z.infer<typeof AnalyzeTrendsInputSchema>;
@@ -26,13 +26,13 @@ export type AnalyzeTrendsInput = z.infer<typeof AnalyzeTrendsInputSchema>;
 const AnalyzeTrendsOutputSchema = z.object({
   mostFrequentAreas: z
     .array(z.object({area: z.string(), count: z.number()}))
-    .describe('The most frequent incident areas, with their counts.'),
+    .describe('As áreas de incidentes mais frequentes, com suas contagens.'),
   mostFrequentRiskTypes: z
     .array(z.object({riskType: z.string(), count: z.number()}))
-    .describe('The most frequent types of risk, with their counts.'),
+    .describe('Os tipos de risco mais frequentes, com suas contagens.'),
   riskSummary: z
     .string()
-    .describe('A summary of the overall risk trends and potential areas for improvement.'),
+    .describe('Um resumo das tendências gerais de risco e potenciais áreas para melhoria.'),
 });
 export type AnalyzeTrendsOutput = z.infer<typeof AnalyzeTrendsOutputSchema>;
 
@@ -44,22 +44,17 @@ const prompt = ai.definePrompt({
   name: 'analyzeTrendsPrompt',
   input: {schema: AnalyzeTrendsInputSchema},
   output: {schema: AnalyzeTrendsOutputSchema},
-  prompt: `You are an AI safety analyst tasked with identifying trends in workplace safety incidents.
+  prompt: `Você é um analista de segurança de IA encarregado de identificar tendências em incidentes de segurança no trabalho.
 
-  Analyze the following safety incident data to identify the most frequent incident areas and types of risk.
-  Provide a summary of the overall risk trends and potential areas for improvement.
+  Analise os seguintes dados de incidentes de segurança para identificar as áreas de incidentes e os tipos de risco mais frequentes.
+  Forneça um resumo das tendências gerais de risco e potenciais áreas para melhoria.
+  
+  Responda em português brasileiro.
 
-  Safety Incident Data:
+  Dados de Incidentes de Segurança:
   {{#each this}}
-  - Area: {{this.área}}, Risk Type: {{this.tipoDeSituaçãoDeRisco}}, Potential: {{this.potencial}}, Description: {{this.descriçãoDaSituaçãoInsegura}}
+  - Area: {{this.área}}, Tipo de Risco: {{this.tipoDeSituaçãoDeRisco}}, Potencial: {{this.potencial}}, Descrição: {{this.descriçãoDaSituaçãoInsegura}}
   {{/each}}
-
-  Provide output as JSON in the following format:
-  {
-    "mostFrequentAreas": [{"area": "area1", "count": 123}, {"area": "area2", "count": 456}],
-    "mostFrequentRiskTypes": [{"riskType": "riskType1", "count": 789}, {"riskType": "riskType2", "count": 101}],
-    "riskSummary": "Overall risk trends and potential areas for improvement."
-  }
   `,
 });
 
