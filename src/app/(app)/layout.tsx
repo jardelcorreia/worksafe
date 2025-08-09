@@ -10,6 +10,9 @@ import {
   ShieldCheck,
   PanelLeft,
   Users,
+  Settings,
+  Building,
+  AlertTriangleIcon,
 } from 'lucide-react';
 import {
   SidebarProvider,
@@ -22,6 +25,9 @@ import {
   SidebarMenuButton,
   SidebarFooter,
   SidebarInset,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
 } from '@/components/ui/sidebar';
 import { Logo } from '@/components/icons';
 import { Button } from '@/components/ui/button';
@@ -34,6 +40,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 const menuItems = [
   {
@@ -45,21 +52,37 @@ const menuItems = [
     href: '/incidents',
     label: 'Incidents',
     icon: List,
+    exactMatch: true,
   },
   {
     href: '/incidents/new',
     label: 'New Incident',
     icon: FilePlus2,
   },
-  {
-    href: '/admin/auditors',
-    label: 'Auditors',
-    icon: Users,
-  },
 ];
+
+const settingsMenuItems = [
+    {
+        href: '/admin/auditors',
+        label: 'Auditors',
+        icon: Users,
+    },
+    {
+        href: '/admin/areas',
+        label: 'Areas',
+        icon: Building,
+    },
+    {
+        href: '/admin/risk-types',
+        label: 'Risk Types',
+        icon: AlertTriangleIcon,
+    },
+]
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+
+  const isSettingsActive = settingsMenuItems.some(item => pathname.startsWith(item.href));
 
   return (
     <SidebarProvider>
@@ -74,7 +97,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 <SidebarMenuButton
                   asChild
                   isActive={
-                    pathname.startsWith(item.href)
+                    item.exactMatch ? pathname === item.href : pathname.startsWith(item.href)
                   }
                   tooltip={item.label}
                 >
@@ -85,6 +108,35 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 </SidebarMenuButton>
               </SidebarMenuItem>
             ))}
+             <Collapsible defaultOpen={isSettingsActive}>
+                <SidebarMenuItem>
+                    <CollapsibleTrigger asChild>
+                        <SidebarMenuButton
+                            isSubmenu
+                            className="w-full"
+                            tooltip="Settings"
+                            >
+                            <Settings />
+                            <span>Settings</span>
+                        </SidebarMenuButton>
+                    </CollapsibleTrigger>
+                </SidebarMenuItem>
+
+                <CollapsibleContent asChild>
+                    <SidebarMenuSub>
+                        {settingsMenuItems.map((item) => (
+                             <SidebarMenuSubItem key={item.href}>
+                                <SidebarMenuSubButton asChild isActive={pathname.startsWith(item.href)}>
+                                    <Link href={item.href}>
+                                        <item.icon/>
+                                        <span>{item.label}</span>
+                                    </Link>
+                                </SidebarMenuSubButton>
+                             </SidebarMenuSubItem>
+                        ))}
+                    </SidebarMenuSub>
+                </CollapsibleContent>
+             </Collapsible>
           </SidebarMenu>
         </SidebarContent>
         <SidebarFooter>
@@ -127,7 +179,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <header className="flex h-14 items-center gap-4 border-b bg-background/50 backdrop-blur-sm px-4 lg:h-[60px] lg:px-6 sticky top-0 z-30">
           <SidebarTrigger className="md:hidden" />
           <h1 className="text-lg font-semibold md:text-2xl font-headline flex-1">
-            {menuItems.find((item) => pathname.startsWith(item.href))?.label}
+            {[...menuItems, ...settingsMenuItems].find((item) => pathname.startsWith(item.href))?.label}
           </h1>
         </header>
         <main className="flex-1 p-4 md:p-6">{children}</main>

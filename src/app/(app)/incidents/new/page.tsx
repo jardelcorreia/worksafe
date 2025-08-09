@@ -34,8 +34,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { addIncident } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
-import { AreaLevels, PotentialLevels, StatusLevels, incidentSchema } from '@/lib/types';
-import { auditors } from '@/lib/data';
+import { PotentialLevels, StatusLevels, incidentSchema } from '@/lib/types';
+import { auditors, areas, riskTypes } from '@/lib/data';
 
 export default function NewIncidentPage() {
   const router = useRouter();
@@ -156,8 +156,8 @@ export default function NewIncidentPage() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {AreaLevels.map((area) => (
-                           <SelectItem key={area} value={area}>{area}</SelectItem>
+                        {areas.map((area) => (
+                           <SelectItem key={area.id} value={area.name}>{area.name}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -165,15 +165,24 @@ export default function NewIncidentPage() {
                   </FormItem>
                 )}
               />
-              <FormField
+               <FormField
                 control={form.control}
                 name="riskType"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Type of Risk Situation</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g. Chemical Spill" {...field} />
-                    </FormControl>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a risk type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {riskTypes.map((riskType) => (
+                           <SelectItem key={riskType.id} value={riskType.name}>{riskType.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}

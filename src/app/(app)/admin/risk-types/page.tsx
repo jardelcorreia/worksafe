@@ -25,58 +25,57 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { addAuditor, deleteAuditor } from '@/lib/actions';
-import { auditors as initialAuditors } from '@/lib/data';
-import { auditorSchema } from '@/lib/types';
-import type { Auditor } from '@/lib/types';
+import { addRiskType, deleteRiskType } from '@/lib/actions';
+import { riskTypes as initialRiskTypes } from '@/lib/data';
+import { riskTypeSchema } from '@/lib/types';
+import type { RiskType } from '@/lib/types';
 
-export default function AuditorsPage() {
+export default function RiskTypesPage() {
   const { toast } = useToast();
-  const [auditors, setAuditors] =
-    useState<Auditor[]>(initialAuditors);
+  const [riskTypes, setRiskTypes] = useState<RiskType[]>(initialRiskTypes);
 
-  const form = useForm<z.infer<typeof auditorSchema>>({
-    resolver: zodResolver(auditorSchema),
+  const form = useForm<z.infer<typeof riskTypeSchema>>({
+    resolver: zodResolver(riskTypeSchema),
     defaultValues: {
       name: '',
     },
   });
 
-  async function handleAddAuditor(values: z.infer<typeof auditorSchema>) {
-    const newAuditor = { id: Date.now().toString(), name: values.name };
-    setAuditors((prev) => [...prev, newAuditor]);
+  async function handleAddRiskType(values: z.infer<typeof riskTypeSchema>) {
+    const newRiskType = { id: Date.now().toString(), name: values.name };
+    setRiskTypes((prev) => [...prev, newRiskType]);
     form.reset();
-    const result = await addAuditor(newAuditor);
+    const result = await addRiskType(newRiskType);
     if (!result.success) {
       toast({
         title: 'Error',
-        description: 'Failed to add auditor.',
+        description: 'Failed to add risk type.',
         variant: 'destructive',
       });
-      setAuditors((prev) => prev.filter((a) => a.id !== newAuditor.id));
+      setRiskTypes((prev) => prev.filter((rt) => rt.id !== newRiskType.id));
     } else {
         toast({
             title: 'Success',
-            description: 'Auditor added successfully.',
+            description: 'Risk Type added successfully.',
         });
     }
   }
 
-  async function handleDeleteAuditor(id: string) {
-    const originalAuditors = auditors;
-    setAuditors((prev) => prev.filter((a) => a.id !== id));
-    const result = await deleteAuditor(id);
+  async function handleDeleteRiskType(id: string) {
+    const originalRiskTypes = riskTypes;
+    setRiskTypes((prev) => prev.filter((rt) => rt.id !== id));
+    const result = await deleteRiskType(id);
     if (!result.success) {
       toast({
         title: 'Error',
-        description: 'Failed to delete auditor.',
+        description: 'Failed to delete risk type.',
         variant: 'destructive',
       });
-      setAuditors(originalAuditors);
+      setRiskTypes(originalRiskTypes);
     } else {
       toast({
         title: 'Success',
-        description: 'Auditor deleted successfully.',
+        description: 'Risk Type deleted successfully.',
       });
     }
   }
@@ -84,13 +83,13 @@ export default function AuditorsPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Manage Auditors</CardTitle>
+        <CardTitle>Manage Risk Types</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid gap-6">
           <Form {...form}>
             <form
-              onSubmit={form.handleSubmit(handleAddAuditor)}
+              onSubmit={form.handleSubmit(handleAddRiskType)}
               className="flex items-end gap-4"
             >
               <FormField
@@ -98,9 +97,9 @@ export default function AuditorsPage() {
                 name="name"
                 render={({ field }) => (
                   <FormItem className="flex-grow">
-                    <FormLabel>Auditor Name</FormLabel>
+                    <FormLabel>Risk Type Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g. Jane Smith" {...field} />
+                      <Input placeholder="e.g. Chemical Spill" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -108,7 +107,7 @@ export default function AuditorsPage() {
               />
               <Button type="submit" disabled={form.formState.isSubmitting}>
                 <PlusCircle className="mr-2 h-4 w-4" />
-                {form.formState.isSubmitting ? 'Adding...' : 'Add Auditor'}
+                {form.formState.isSubmitting ? 'Adding...' : 'Add Risk Type'}
               </Button>
             </form>
           </Form>
@@ -122,14 +121,14 @@ export default function AuditorsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {auditors.map((auditor) => (
-                  <TableRow key={auditor.id}>
-                    <TableCell>{auditor.name}</TableCell>
+                {riskTypes.map((riskType) => (
+                  <TableRow key={riskType.id}>
+                    <TableCell>{riskType.name}</TableCell>
                     <TableCell className="text-right">
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => handleDeleteAuditor(auditor.id)}
+                        onClick={() => handleDeleteRiskType(riskType.id)}
                       >
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>

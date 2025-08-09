@@ -4,9 +4,9 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { analyzeTrends as analyzeTrendsFlow } from '@/ai/flows/trend-spotter';
 import { riskForecaster as riskForecasterFlow } from '@/ai/flows/risk-forecaster';
-import { incidents, auditors } from './data';
-import type { SafetyIncident, Auditor } from './types';
-import { incidentSchema, auditorSchema } from './types';
+import { incidents, auditors, areas, riskTypes } from './data';
+import type { SafetyIncident, Auditor, Area, RiskType } from './types';
+import { incidentSchema, auditorSchema, areaSchema, riskTypeSchema } from './types';
 
 // Export types for use in client components
 export type { AnalyzeTrendsOutput } from '@/ai/flows/trend-spotter';
@@ -49,6 +49,7 @@ export async function riskForecaster(identifiedTrends: string) {
   }
 }
 
+// Incident Actions
 export async function addIncident(data: z.infer<typeof incidentSchema>) {
   const newIncident: SafetyIncident = {
     ...data,
@@ -65,6 +66,7 @@ export async function addIncident(data: z.infer<typeof incidentSchema>) {
   return { success: true, message: 'Incident added successfully.' };
 }
 
+// Auditor Actions
 export async function addAuditor(data: z.infer<typeof auditorSchema>) {
   const newAuditor: Auditor = {
     id: String(auditors.length + 1),
@@ -72,6 +74,7 @@ export async function addAuditor(data: z.infer<typeof auditorSchema>) {
   };
   auditors.push(newAuditor);
   revalidatePath('/admin/auditors');
+  revalidatePath('/incidents/new');
   return { success: true, message: 'Auditor added successfully.' };
 }
 
@@ -80,7 +83,54 @@ export async function deleteAuditor(id: string) {
   if (index !== -1) {
     auditors.splice(index, 1);
     revalidatePath('/admin/auditors');
+    revalidatePath('/incidents/new');
     return { success: true, message: 'Auditor deleted successfully.' };
   }
   return { success: false, message: 'Auditor not found.' };
+}
+
+// Area Actions
+export async function addArea(data: z.infer<typeof areaSchema>) {
+    const newArea: Area = {
+      id: String(areas.length + 1),
+      name: data.name,
+    };
+    areas.push(newArea);
+    revalidatePath('/admin/areas');
+    revalidatePath('/incidents/new');
+    return { success: true, message: 'Area added successfully.' };
+  }
+  
+  export async function deleteArea(id: string) {
+    const index = areas.findIndex((a) => a.id === id);
+    if (index !== -1) {
+      areas.splice(index, 1);
+      revalidatePath('/admin/areas');
+      revalidatePath('/incidents/new');
+      return { success: true, message: 'Area deleted successfully.' };
+    }
+    return { success: false, message: 'Area not found.' };
+  }
+
+// Risk Type Actions
+export async function addRiskType(data: z.infer<typeof riskTypeSchema>) {
+    const newRiskType: RiskType = {
+        id: String(riskTypes.length + 1),
+        name: data.name,
+    };
+    riskTypes.push(newRiskType);
+    revalidatePath('/admin/risk-types');
+    revalidatePath('/incidents/new');
+    return { success: true, message: 'Risk Type added successfully.' };
+}
+
+export async function deleteRiskType(id: string) {
+    const index = riskTypes.findIndex((rt) => rt.id === id);
+    if (index !== -1) {
+        riskTypes.splice(index, 1);
+        revalidatePath('/admin/risk-types');
+        revalidatePath('/incidents/new');
+        return { success: true, message: 'Risk Type deleted successfully.' };
+    }
+    return { success: false, message: 'Risk Type not found.' };
 }

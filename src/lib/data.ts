@@ -1,4 +1,4 @@
-import type { SafetyIncident, Auditor } from './types';
+import type { SafetyIncident, Auditor, Area, RiskType } from './types';
 
 export const auditors: Auditor[] = [
   { id: '1', name: 'Anderson José Silva' },
@@ -8,6 +8,33 @@ export const auditors: Auditor[] = [
   { id: '5', name: 'Diego Nogueira' },
   { id: '6', name: 'Gerson Junior' },
   { id: '7', name: 'Dieison Teixeira' },
+];
+
+export const areas: Area[] = [
+    { id: '1', name: 'Lingotamento' },
+    { id: '2', name: 'Aciaria' },
+    { id: '3', name: 'GTP' },
+    { id: '4', name: 'Sinterização' },
+    { id: '5', name: 'Pátio de Matéria Prima' },
+    { id: '6', name: 'Alto forno' },
+    { id: '7', name: 'Ponte Rolante' },
+    { id: '8', name: 'NR 12' },
+];
+
+export const riskTypes: RiskType[] = [
+    { id: '1', name: 'Isolamento Deficiente' },
+    { id: '2', name: 'Piso Irregular' },
+    { id: '3', name: 'Cinto de Segurança Avariado' },
+    { id: '4', name: 'Documentação' },
+    { id: '5', name: 'Outros:' },
+    { id: '6', name: 'Ausência de FISPQ' },
+    { id: '7', name: 'Colaborador sem EPI' },
+    { id: '8', name: 'Extintor' },
+    { id: '9', name: 'Acesso' },
+    { id: '10', name: 'Risco de choque elétrico' },
+    { id: '11', name: 'Atropelamento' },
+    { id: '12', name: 'Isolamento Caído' },
+    { id: '13', name: 'Falta de Isolamento' },
 ];
 
 export const incidents: SafetyIncident[] = [

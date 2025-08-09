@@ -25,58 +25,57 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { addAuditor, deleteAuditor } from '@/lib/actions';
-import { auditors as initialAuditors } from '@/lib/data';
-import { auditorSchema } from '@/lib/types';
-import type { Auditor } from '@/lib/types';
+import { addArea, deleteArea } from '@/lib/actions';
+import { areas as initialAreas } from '@/lib/data';
+import { areaSchema } from '@/lib/types';
+import type { Area } from '@/lib/types';
 
-export default function AuditorsPage() {
+export default function AreasPage() {
   const { toast } = useToast();
-  const [auditors, setAuditors] =
-    useState<Auditor[]>(initialAuditors);
+  const [areas, setAreas] = useState<Area[]>(initialAreas);
 
-  const form = useForm<z.infer<typeof auditorSchema>>({
-    resolver: zodResolver(auditorSchema),
+  const form = useForm<z.infer<typeof areaSchema>>({
+    resolver: zodResolver(areaSchema),
     defaultValues: {
       name: '',
     },
   });
 
-  async function handleAddAuditor(values: z.infer<typeof auditorSchema>) {
-    const newAuditor = { id: Date.now().toString(), name: values.name };
-    setAuditors((prev) => [...prev, newAuditor]);
+  async function handleAddArea(values: z.infer<typeof areaSchema>) {
+    const newArea = { id: Date.now().toString(), name: values.name };
+    setAreas((prev) => [...prev, newArea]);
     form.reset();
-    const result = await addAuditor(newAuditor);
+    const result = await addArea(newArea);
     if (!result.success) {
       toast({
         title: 'Error',
-        description: 'Failed to add auditor.',
+        description: 'Failed to add area.',
         variant: 'destructive',
       });
-      setAuditors((prev) => prev.filter((a) => a.id !== newAuditor.id));
+      setAreas((prev) => prev.filter((a) => a.id !== newArea.id));
     } else {
         toast({
             title: 'Success',
-            description: 'Auditor added successfully.',
+            description: 'Area added successfully.',
         });
     }
   }
 
-  async function handleDeleteAuditor(id: string) {
-    const originalAuditors = auditors;
-    setAuditors((prev) => prev.filter((a) => a.id !== id));
-    const result = await deleteAuditor(id);
+  async function handleDeleteArea(id: string) {
+    const originalAreas = areas;
+    setAreas((prev) => prev.filter((a) => a.id !== id));
+    const result = await deleteArea(id);
     if (!result.success) {
       toast({
         title: 'Error',
-        description: 'Failed to delete auditor.',
+        description: 'Failed to delete area.',
         variant: 'destructive',
       });
-      setAuditors(originalAuditors);
+      setAreas(originalAreas);
     } else {
       toast({
         title: 'Success',
-        description: 'Auditor deleted successfully.',
+        description: 'Area deleted successfully.',
       });
     }
   }
@@ -84,13 +83,13 @@ export default function AuditorsPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Manage Auditors</CardTitle>
+        <CardTitle>Manage Areas</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid gap-6">
           <Form {...form}>
             <form
-              onSubmit={form.handleSubmit(handleAddAuditor)}
+              onSubmit={form.handleSubmit(handleAddArea)}
               className="flex items-end gap-4"
             >
               <FormField
@@ -98,9 +97,9 @@ export default function AuditorsPage() {
                 name="name"
                 render={({ field }) => (
                   <FormItem className="flex-grow">
-                    <FormLabel>Auditor Name</FormLabel>
+                    <FormLabel>Area Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g. Jane Smith" {...field} />
+                      <Input placeholder="e.g. Lingotamento" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -108,7 +107,7 @@ export default function AuditorsPage() {
               />
               <Button type="submit" disabled={form.formState.isSubmitting}>
                 <PlusCircle className="mr-2 h-4 w-4" />
-                {form.formState.isSubmitting ? 'Adding...' : 'Add Auditor'}
+                {form.formState.isSubmitting ? 'Adding...' : 'Add Area'}
               </Button>
             </form>
           </Form>
@@ -122,14 +121,14 @@ export default function AuditorsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {auditors.map((auditor) => (
-                  <TableRow key={auditor.id}>
-                    <TableCell>{auditor.name}</TableCell>
+                {areas.map((area) => (
+                  <TableRow key={area.id}>
+                    <TableCell>{area.name}</TableCell>
                     <TableCell className="text-right">
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => handleDeleteAuditor(auditor.id)}
+                        onClick={() => handleDeleteArea(area.id)}
                       >
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>

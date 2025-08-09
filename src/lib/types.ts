@@ -5,6 +5,16 @@ export type Auditor = {
   name: string;
 };
 
+export type Area = {
+  id: string;
+  name: string;
+};
+
+export type RiskType = {
+    id: string;
+    name: string;
+}
+
 export type SafetyIncident = {
   id: string;
   timestamp: string;
@@ -21,16 +31,6 @@ export type SafetyIncident = {
 
 export const PotentialLevels = ['High', 'Medium', 'Low', 'No Deviation'] as const;
 export const StatusLevels = ['Resolved', 'In Progress', 'Satisfactory'] as const;
-export const AreaLevels = [
-  'Lingotamento',
-  'Aciaria',
-  'GTP',
-  'Sinterização',
-  'Pátio de Matéria Prima',
-  'Alto forno',
-  'Ponte Rolante',
-  'NR 12',
-] as const;
 
 export const incidentSchema = z.object({
   area: z.string().min(1, 'Area is required.'),
@@ -46,4 +46,12 @@ export const incidentSchema = z.object({
 
 export const auditorSchema = z.object({
   name: z.string().min(1, 'Auditor name is required.'),
+});
+
+export const areaSchema = z.object({
+    name: z.string().min(1, 'Area name is required.'),
+});
+
+export const riskTypeSchema = z.object({
+    name: z.string().min(1, 'Risk type name is required.'),
 });
