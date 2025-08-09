@@ -16,7 +16,7 @@ export type RiskType = {
   name: string;
 };
 
-export type SafetyIncident = {
+export type SafetyInspection = {
   id: string;
   timestamp: string;
   area: string;
@@ -35,7 +35,7 @@ export type SafetyIncident = {
 export const PotentialLevels = ['Alto', 'Médio', 'Baixo', 'Sem Desvio'] as const;
 export const StatusLevels = ['Resolvido', 'Em Andamento', 'Satisfatório'] as const;
 
-export const incidentSchema = z.object({
+export const inspectionSchema = z.object({
   area: z.string().min(1, 'Área é obrigatória.'),
   auditor: z.string().min(1, 'Auditor é obrigatório.'),
   date: z.string(),

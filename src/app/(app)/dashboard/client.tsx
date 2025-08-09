@@ -25,17 +25,17 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { analyzeTrends, riskForecaster, fetchIncidents } from '@/lib/actions';
+import { analyzeTrends, riskForecaster, fetchInspections } from '@/lib/actions';
 import type {
   AnalyzeTrendsOutput,
   RiskForecasterOutput,
 } from '@/lib/actions';
-import type { SafetyIncident } from '@/lib/types';
+import type { SafetyInspection } from '@/lib/types';
 
 export function DashboardClient() {
   const [trends, setTrends] = useState<AnalyzeTrendsOutput | null>(null);
   const [forecast, setForecast] = useState<RiskForecasterOutput | null>(null);
-  const [incidents, setIncidents] = useState<SafetyIncident[]>([]);
+  const [inspections, setInspections] = useState<SafetyInspection[]>([]);
   const [loading, setLoading] = useState(true);
   const [hasData, setHasData] = useState(false);
 
@@ -43,10 +43,10 @@ export function DashboardClient() {
     async function getAIFeatures() {
       setLoading(true);
       try {
-        const incidentsData = await fetchIncidents();
-        setIncidents(incidentsData);
+        const inspectionsData = await fetchInspections();
+        setInspections(inspectionsData);
 
-        if (incidentsData.length > 0) {
+        if (inspectionsData.length > 0) {
           setHasData(true);
           const trendData = await analyzeTrends();
           setTrends(trendData);
@@ -67,14 +67,14 @@ export function DashboardClient() {
     getAIFeatures();
   }, []);
 
-  const totalIncidents = incidents.length;
-  const resolvedIncidents = incidents.filter(
+  const totalInspections = inspections.length;
+  const resolvedInspections = inspections.filter(
     (i) => i.status === 'Resolvido'
   ).length;
-  const pendingIncidents = incidents.filter(
+  const pendingInspections = inspections.filter(
     (i) => i.status === 'Em Andamento'
   ).length;
-  const highPotentialIncidents = incidents.filter(
+  const highPotentialInspections = inspections.filter(
     (i) => i.potential === 'Alto'
   ).length;
 
@@ -93,40 +93,40 @@ export function DashboardClient() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Total de Incidentes
+              Total de Inspeções
             </CardTitle>
             <ListChecks className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalIncidents}</div>
+            <div className="text-2xl font-bold">{totalInspections}</div>
             <p className="text-xs text-muted-foreground">
-              Total de incidentes registrados
+              Total de inspeções registradas
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Incidentes Resolvidos
+              Inspeções Resolvidas
             </CardTitle>
             <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{resolvedIncidents}</div>
+            <div className="text-2xl font-bold">{resolvedInspections}</div>
             <p className="text-xs text-muted-foreground">
-              {totalIncidents > 0 ? ((resolvedIncidents / totalIncidents) * 100).toFixed(1) : 0}% resolvidos
+              {totalInspections > 0 ? ((resolvedInspections / totalInspections) * 100).toFixed(1) : 0}% resolvidas
             </p>
           </CardContent>
         </Card>
          <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Incidentes Pendentes</CardTitle>
+            <CardTitle className="text-sm font-medium">Inspeções Pendentes</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{pendingIncidents}</div>
+            <div className="text-2xl font-bold">{pendingInspections}</div>
              <p className="text-xs text-muted-foreground">
-              Incidentes com status "Em Andamento"
+              Inspeções com status "Em Andamento"
             </p>
           </CardContent>
         </Card>
@@ -136,9 +136,9 @@ export function DashboardClient() {
             <ShieldAlert className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{highPotentialIncidents}</div>
+            <div className="text-2xl font-bold">{highPotentialInspections}</div>
             <p className="text-xs text-muted-foreground">
-              Incidentes classificados como "Alto"
+              Inspeções classificadas como "Alto"
             </p>
           </CardContent>
         </Card>
@@ -154,23 +154,23 @@ export function DashboardClient() {
             <Info className="h-4 w-4" />
             <AlertTitle>Nenhum dado para analisar</AlertTitle>
             <AlertDescription>
-                Ainda não há incidentes registrados. Assim que o primeiro incidente for adicionado, os insights de IA aparecerão aqui.
+                Ainda não há inspeções registradas. Assim que a primeira inspeção for adicionada, os insights de IA aparecerão aqui.
             </AlertDescription>
         </Alert>
       ) : (
         <div className="grid gap-6 lg:grid-cols-2">
           <Card>
             <CardHeader>
-              <CardTitle>Áreas com Maior Frequência de Incidentes</CardTitle>
+              <CardTitle>Áreas com Maior Frequência de Inspeções</CardTitle>
               <CardDescription>
-                Principais áreas onde ocorrem incidentes de segurança.
+                Principais áreas onde ocorrem inspeções de segurança.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <ChartContainer
                 config={{
                   count: {
-                    label: 'Incidentes',
+                    label: 'Inspeções',
                     color: 'hsl(var(--primary))',
                   },
                 }}
@@ -198,14 +198,14 @@ export function DashboardClient() {
             <CardHeader>
               <CardTitle>Tipos de Risco Mais Frequentes</CardTitle>
               <CardDescription>
-                Principais tipos de riscos identificados nos incidentes.
+                Principais tipos de riscos identificados nas inspeções.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <ChartContainer
                 config={{
                   count: {
-                    label: 'Incidentes',
+                    label: 'Inspeções',
                     color: 'hsl(var(--accent))',
                   },
                 }}
@@ -241,12 +241,12 @@ export function DashboardClient() {
                 <AlertTriangle className="text-destructive" /> Alertas Preditivos de Risco
               </CardTitle>
               <CardDescription>
-                Potenciais futuros incidentes de segurança com base nas tendências.
+                Potenciais futuros problemas de segurança com base nas tendências.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <h4 className="font-semibold mb-2">Incidentes Previstos:</h4>
-              <p className="text-sm mb-4">{forecast?.predictedIncidents}</p>
+              <h4 className="font-semibold mb-2">Problemas Previstos:</h4>
+              <p className="text-sm mb-4">{forecast?.predictedIssues}</p>
               <h4 className="font-semibold mb-2">Justificativa:</h4>
               <p className="text-sm">{forecast?.reasoning}</p>
             </CardContent>
@@ -257,7 +257,7 @@ export function DashboardClient() {
                 <BarChart2 className="text-primary" /> Ações Preventivas
               </CardTitle>
               <CardDescription>
-                Ações sugeridas para mitigar os incidentes previstos.
+                Ações sugeridas para mitigar os problemas previstos.
               </CardDescription>
             </CardHeader>
             <CardContent>

@@ -91,7 +91,7 @@ export default function LoginPage() {
             <CardHeader>
               <CardTitle>Login como Auditor</CardTitle>
               <CardDescription>
-                Acesso para registro e consulta de incidentes de segurança.
+                Acesso para registro e consulta de inspeções de segurança.
               </CardDescription>
             </CardHeader>
             <CardFooter>

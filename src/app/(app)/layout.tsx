@@ -47,14 +47,14 @@ const menuItems = [
     icon: AreaChart,
   },
   {
-    href: '/incidents',
-    label: 'Incidentes',
+    href: '/inspections',
+    label: 'Inspeções',
     icon: List,
     exactMatch: true,
   },
   {
-    href: '/incidents/new',
-    label: 'Novo Incidente',
+    href: '/inspections/new',
+    label: 'Nova Inspeção',
     icon: FilePlus2,
   },
 ];
