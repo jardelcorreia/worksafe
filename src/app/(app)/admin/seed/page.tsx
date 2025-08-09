@@ -17,10 +17,17 @@ export default function SeedPage() {
     try {
       const result = await seedRiskTypes();
       if (result.success) {
-        toast({
-          title: 'Sucesso!',
-          description: `${result.count} tipos de risco foram cadastrados.`,
-        });
+        if (result.count > 0) {
+            toast({
+              title: 'Sucesso!',
+              description: `${result.count} novos tipos de risco foram cadastrados.`,
+            });
+        } else {
+             toast({
+              title: 'Nenhuma alteração',
+              description: 'Todos os tipos de risco padrão já estavam cadastrados no banco de dados.',
+            });
+        }
       } else {
         throw new Error(result.message);
       }
