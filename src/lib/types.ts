@@ -1,3 +1,5 @@
+import { z } from 'zod';
+
 export type SafetyIncident = {
   id: string;
   timestamp: string;
@@ -24,3 +26,15 @@ export const AreaLevels = [
   'Ponte Rolante',
   'NR 12',
 ] as const;
+
+export const incidentSchema = z.object({
+  area: z.string().min(1, 'Area is required.'),
+  auditor: z.string().min(1, 'Auditor is required.'),
+  date: z.string(),
+  riskType: z.string().min(1, 'Risk Type is required.'),
+  potential: z.enum(['High', 'Medium', 'Low', 'No Deviation']),
+  description: z.string().min(1, 'Description is required.'),
+  responsible: z.string().min(1, 'Responsible person/action is required.'),
+  deadline: z.string(),
+  status: z.enum(['Resolved', 'In Progress', 'Satisfactory']),
+});

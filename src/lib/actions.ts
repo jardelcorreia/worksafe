@@ -6,6 +6,7 @@ import { analyzeTrends as analyzeTrendsFlow } from '@/ai/flows/trend-spotter';
 import { riskForecaster as riskForecasterFlow } from '@/ai/flows/risk-forecaster';
 import { incidents } from './data';
 import type { SafetyIncident } from './types';
+import { incidentSchema } from './types';
 
 // Export types for use in client components
 export type { AnalyzeTrendsOutput } from '@/ai/flows/trend-spotter';
@@ -47,19 +48,6 @@ export async function riskForecaster(identifiedTrends: string) {
     return null;
   }
 }
-
-// Data Actions
-export const incidentSchema = z.object({
-  area: z.string().min(1, 'Area is required.'),
-  auditor: z.string().min(1, 'Auditor is required.'),
-  date: z.string(),
-  riskType: z.string().min(1, 'Risk Type is required.'),
-  potential: z.enum(['High', 'Medium', 'Low', 'No Deviation']),
-  description: z.string().min(1, 'Description is required.'),
-  responsible: z.string().min(1, 'Responsible person/action is required.'),
-  deadline: z.string(),
-  status: z.enum(['Resolved', 'In Progress', 'Satisfactory']),
-});
 
 export async function addIncident(data: z.infer<typeof incidentSchema>) {
   const newIncident: SafetyIncident = {

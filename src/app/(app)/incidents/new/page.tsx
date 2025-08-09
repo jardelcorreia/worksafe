@@ -32,9 +32,9 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { incidentSchema, addIncident } from '@/lib/actions';
+import { addIncident } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
-import { AreaLevels, PotentialLevels, StatusLevels } from '@/lib/types';
+import { AreaLevels, PotentialLevels, StatusLevels, incidentSchema } from '@/lib/types';
 
 export default function NewIncidentPage() {
   const router = useRouter();
