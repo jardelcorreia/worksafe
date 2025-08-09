@@ -1,3 +1,4 @@
+
 import { z } from 'zod';
 
 export type Auditor = {
@@ -9,11 +10,6 @@ export type Area = {
   id: string;
   name: string;
 };
-
-export type RiskType = {
-    id: string;
-    name: string;
-}
 
 export type SafetyIncident = {
   id: string;
@@ -54,8 +50,4 @@ export const auditorSchema = z.object({
 
 export const areaSchema = z.object({
     name: z.string().min(1, 'Nome da área é obrigatório.'),
-});
-
-export const riskTypeSchema = z.object({
-    name: z.string().min(1, 'Nome do tipo de risco é obrigatório.'),
 });

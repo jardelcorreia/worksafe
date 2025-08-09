@@ -70,19 +70,9 @@ const settingsMenuItems = [
     icon: Building,
   },
   {
-    href: '/admin/risk-types',
-    label: 'Tipos de Risco',
-    icon: AlertTriangleIcon,
-  },
-  {
     href: '/admin/account',
     label: 'Conta',
     icon: KeyRound,
-  },
-   {
-    href: '/admin/seed',
-    label: 'Popular Dados',
-    icon: Database,
   },
 ];
 
