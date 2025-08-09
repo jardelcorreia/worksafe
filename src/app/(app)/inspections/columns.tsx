@@ -45,14 +45,11 @@ import {
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
-function DetailsModal({ inspection }: { inspection: SafetyInspection }) {
+function DetailsModal({ inspection, children }: { inspection: SafetyInspection, children: React.ReactNode }) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-          <FileText className="mr-2 h-4 w-4" />
-          Ver Detalhes
-        </DropdownMenuItem>
+        {children}
       </DialogTrigger>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
@@ -161,7 +158,12 @@ function ActionsCell({ row }: { row: any }) {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuLabel>Ações</DropdownMenuLabel>
-        <DetailsModal inspection={inspection} />
+        <DetailsModal inspection={inspection}>
+            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                <FileText className="mr-2 h-4 w-4" />
+                Ver Detalhes
+            </DropdownMenuItem>
+        </DetailsModal>
         <DropdownMenuItem onClick={handleEdit}>
           <Edit className="mr-2 h-4 w-4" />
           Editar
@@ -299,23 +301,29 @@ export const columns: ColumnDef<SafetyInspection>[] = [
     accessorKey: 'photos',
     header: 'Fotos',
     cell: ({ row }) => {
-      const photos = row.getValue('photos') as string[];
-      if (photos && photos.length > 0) {
-        return (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger>
-                <Camera className="h-5 w-5 text-muted-foreground" />
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{photos.length} foto(s) anexada(s)</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        );
-      }
-      return null;
-    },
+        const inspection = row.original as SafetyInspection;
+        const photos = inspection.photos;
+      
+        if (photos && photos.length > 0) {
+          return (
+            <DetailsModal inspection={inspection}>
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                             <button className="flex items-center justify-center">
+                                <Camera className="h-5 w-5 text-muted-foreground" />
+                             </button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p>Ver {photos.length} foto(s)</p>
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+            </DetailsModal>
+          );
+        }
+        return null;
+      },
   },
   {
     id: 'actions',
