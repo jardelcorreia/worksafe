@@ -24,6 +24,7 @@ export type SafetyIncident = {
   riskType: string;
   potential: 'Alto' | 'Médio' | 'Baixo' | 'Sem Desvio';
   description: string;
+  correctiveAction: string;
   responsible: string;
   deadline: string;
   status: 'Resolvido' | 'Em Andamento' | 'Satisfatório';
@@ -39,6 +40,7 @@ export const incidentSchema = z.object({
   riskType: z.string().min(1, 'Tipo de Risco é obrigatório.'),
   potential: z.enum(['Alto', 'Médio', 'Baixo', 'Sem Desvio']),
   description: z.string().min(1, 'Descrição é obrigatória.'),
+  correctiveAction: z.string().min(1, 'Ação corretiva é obrigatória.'),
   responsible: z.string().min(1, 'Responsável/Ação é obrigatório(a).'),
   deadline: z.string(),
   status: z.enum(['Resolvido', 'Em Andamento', 'Satisfatório']),

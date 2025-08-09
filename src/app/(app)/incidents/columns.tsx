@@ -14,6 +14,12 @@ import {
 import { Badge } from '@/components/ui/badge';
 import type { SafetyIncident } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 export const columns: ColumnDef<SafetyIncident>[] = [
   {
@@ -38,6 +44,53 @@ export const columns: ColumnDef<SafetyIncident>[] = [
   {
     accessorKey: 'riskType',
     header: 'Tipo de Risco',
+  },
+  {
+    accessorKey: 'description',
+    header: 'Descrição',
+    cell: ({ row }) => {
+      const description = row.getValue('description') as string;
+      if (description.length <= 50) {
+        return <span>{description}</span>;
+      }
+      return (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="cursor-pointer">{`${description.substring(
+                0,
+                50
+              )}...`}</span>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p className="max-w-xs">{description}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      );
+    },
+  },
+  {
+    accessorKey: 'correctiveAction',
+    header: 'Ação Corretiva',
+    cell: ({ row }) => {
+        const action = row.getValue('correctiveAction') as string;
+        if (action.length <= 50) {
+            return <span>{action}</span>;
+        }
+        return (
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <span className="cursor-pointer">{`${action.substring(0, 50)}...`}</span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <p className="max-w-xs">{action}</p>
+                    </TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
+        )
+    }
   },
   {
     accessorKey: 'potential',

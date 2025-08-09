@@ -48,6 +48,7 @@ export default function NewIncidentPage() {
       area: '',
       riskType: '',
       description: '',
+      correctiveAction: '',
       responsible: '',
       potential: 'Médio',
       status: 'Em Andamento',
@@ -81,7 +82,7 @@ export default function NewIncidentPage() {
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            <div className="grid md:grid-cols-2 gap-8">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               <FormField
                 control={form.control}
                 name="auditor"
@@ -213,9 +214,22 @@ export default function NewIncidentPage() {
               />
                <FormField
                 control={form.control}
-                name="description"
+                name="responsible"
                 render={({ field }) => (
                   <FormItem>
+                    <FormLabel>Responsável pela Ação</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ex: Equipe de Manutenção" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem className="lg:col-span-3">
                     <FormLabel>Descrição da Situação de Insegurança</FormLabel>
                     <FormControl>
                       <Textarea
@@ -227,14 +241,17 @@ export default function NewIncidentPage() {
                   </FormItem>
                 )}
               />
-               <FormField
+              <FormField
                 control={form.control}
-                name="responsible"
+                name="correctiveAction"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Responsável pela Ação</FormLabel>
+                  <FormItem className="lg:col-span-3">
+                    <FormLabel>Ação Corretiva</FormLabel>
                     <FormControl>
-                      <Input placeholder="Ex: Equipe de Manutenção" {...field} />
+                      <Textarea
+                        placeholder="Descreva a ação corretiva tomada..."
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
