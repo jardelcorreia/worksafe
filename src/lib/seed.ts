@@ -1,209 +1,188 @@
+'use client';
 
-'use server';
+import * as React from 'react';
+import { useRouter, usePathname } from 'next/navigation';
+import {
+  AreaChart,
+  FilePlus2,
+  List,
+  Settings,
+  Users,
+  Building,
+  AlertTriangleIcon,
+  KeyRound,
+  Database,
+  ClipboardList,
+} from 'lucide-react';
+import {
+  SidebarProvider,
+  Sidebar,
+  SidebarHeader,
+  SidebarContent,
+  SidebarTrigger,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarFooter,
+  SidebarInset,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
+} from '@/components/ui/sidebar';
+import { Logo } from '@/components/icons';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import { UserProfile } from './user-profile';
+import { useAuth } from '@/contexts/AuthContext';
+import { Skeleton } from '@/components/ui/skeleton';
 
-import { collection, doc, getDocs, writeBatch } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { revalidatePath } from 'next/cache';
-
-const riskTypesToSeed = [
-    'Acesso',
-    'Alerta Sonoro / Alarme Sonoro',
-    'Animais Peçonhentos',
-    'Atropelamento',
-    'Ausência de Biombo',
-    'Ausência de Botão de Emergência',
-    'Ausência de Chuveiro Lava Olhos',
-    'Ausência de EPC (Contenção, Kit de Mitigação, etc.)',
-    'Ausência de FISPQ',
-    'Ausência de Gaiola de Produtos Químicos',
-    'Ausência de Quebra Quina',
-    'Ausência de Sinaleiro',
-    'Ausência de Vigia',
-    'Bancada Inadequada',
-    'Barba',
-    'Buraco na Área de Passagem de Pedestres',
-    'Cabo Guia',
-    'Caixa de Bloqueio',
-    'Calço de Pneus',
-    'Chão Escorregadio',
-    'Cinta Danificada / Inadequada / sem Identificação',
-    'Cinto de Segurança Avariado',
-    'Colaborador desconhece os riscos',
-    'Colaborador sem EPI',
-    'Condutor sem Habilitação',
-    'Contaminação da Água',
-    'Contaminação do Ar',
-    'Contaminação do Solo',
-    'Contato com Material Quente',
-    'Controle de Entrada e Saída',
-    'Descarte Incorreto',
-    'Detector de Gás (Filtro Vencido / Desligado / Ausente)',
-    'Documentação',
-    'Entrada Inadequada',
-    'Equipamento Inadequado',
-    'Espaço Confinado',
-    'Estropo Danificado / sem Identificação',
-    'Estrutura Inadequada',
-    'Excesso de Material',
-    'Exposição a Altas Temperaturas',
-    'Exposição a Centelhas',
-    'Exposição a Produtos Químicos',
-    'Extintor Ausente',
-    'Extintor com Falta',
-    'Falta de Ancoragem',
-    'Falta de Aterramento',
-    'Falta de Bloqueio',
-    'Falta de Cadeado',
-    'Falta de Capacitação',
-    'Falta de Check List',
-    'Falta de Cinto de Segurança',
-    'Falta de Cobertura',
-    'Falta de Coleta Seletiva',
-    'Falta de Data',
-    'Falta de Assinatura',
-    'Falta de Detector de Gás',
-    'Falta de Documentação',
-    'Falta de EPC',
-    'Falta de EPI',
-    'Falta de Identificação',
-    'Falta de Identificação de Risco',
-    'Falta de Isolamento',
-    'Falta de Liberação',
-    'Falta de Linha de Vida',
-    'Falta de Medidas de Segurança',
-    'Falta de Ponto de Encontro',
-    'Falta de Rota de Fuga',
-    'Falta de Treinamento',
-    'Fio Desencapado',
-    'Guarda Corpo Ausente',
-    'Guarda Corpo Inadequado',
-    'Iluminação Inadequada',
-    'Isolamento Caído',
-    'Isolamento Deficiente',
-    'Isolamento Fora do Padrão',
-    'Manilha Inadequada ou sem Identificação',
-    'Mapa de Bloqueio',
-    'Materiais Espalhados / em Excesso',
-    'Material Inflamável/Explosivo Próximo',
-    'Moitão Danificado / sem Identificação',
-    'Olhal Danificado / sem Identificação',
-    'Oxicorte fora do padrão',
-    'Patolamento Inadequado',
-    'Piso Irregular',
-    'Placa de Liberação / Identificação',
-    'Plataforma com Vão Aberto',
-    'Pneu Avariado',
-    'Pranchão Inadequado',
-    'Pranchão Danificado',
-    'Pranchão Irregular',
-    'Quina Viva',
-    'Risco de Choque Elétrico',
-    'Talha Danificada / sem Identificação',
-    'Trava de Segurança',
-    'Vazamento de Produto Químico',
-    'Vazamento de Óleo',
-    'Vergalhão Exposto',
-    'Via com Desnível',
-    'Via com Obstáculo',
-    'Vidro Exposto',
+const menuItems = [
+  {
+    href: '/dashboard',
+    label: 'Dashboard',
+    icon: AreaChart,
+  },
+  {
+    href: '/inspections',
+    label: 'Inspeções',
+    icon: List,
+    exactMatch: true,
+  },
+  {
+    href: '/inspections/new',
+    label: 'Nova Inspeção',
+    icon: FilePlus2,
+  },
 ];
 
-const auditorsToSeed = [
-    'Alécio Chagas',
-    'Ana Lucia',
-    'Anderson José',
-    'Annael Bezerra',
-    'Antônio Cícero',
-    'Diego Nogueira',
-    'Dieison Teixeira',
-    'Felipe Santana',
-    'Gerson Junior',
-    'Gilvan da Silva',
-    'Gleide Martins',
-    'Isael Lima',
-    'Jackson Ribeiro',
-    'Jadson Silva',
-    'Josenildo Oliveira',
-    'José Hitalo',
-    'Jéssica Marques',
-    'Kelviane Magalhães',
-    'Luiz Felipe',
-    'Luís Henrique',
-    'Marcos Ferreira',
-    'Marcos Silva',
-    'Ozivan Torres',
-    'Rohan Diego',
-    'Ruan Matheus',
-    'Tailane Mendes',
-    'William Micolli',
-    'Zenilson Silva',
-  ];
+const settingsMenuItems = [
+  {
+    href: '/admin/auditors',
+    label: 'Auditores',
+    icon: Users,
+  },
+  {
+    href: '/admin/areas',
+    label: 'Áreas',
+    icon: Building,
+  },
+  {
+    href: '/admin/risk-types',
+    label: 'Tipos de Risco',
+    icon: ClipboardList,
+  },
+  {
+    href: '/admin/account',
+    label: 'Conta',
+    icon: KeyRound,
+  },
+];
 
-async function addDocumentsInBatches(collectionName: 'riskTypes' | 'auditors', newItems: string[]) {
-    const batchSize = 400; // Firestore allows up to 500 operations per batch
-    
-    for (let i = 0; i < newItems.length; i += batchSize) {
-        const batch = writeBatch(db);
-        const chunk = newItems.slice(i, i + batchSize);
-        chunk.forEach(name => {
-            const docRef = doc(collection(db, collectionName));
-            batch.set(docRef, { name });
-        });
-        await batch.commit();
+export default function AppLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const { role, loading } = useAuth();
+
+  React.useEffect(() => {
+    if (!loading && !role) {
+      router.replace('/login');
     }
-}
+  }, [role, loading, router]);
 
+  const isSettingsActive = settingsMenuItems.some((item) =>
+    pathname.startsWith(item.href)
+  );
+  
+  const currentItem = [...menuItems, ...settingsMenuItems].find((item) => {
+    if (item.exactMatch) {
+      return pathname === item.href;
+    }
+    return pathname.startsWith(item.href);
+  });
 
-export async function seedRiskTypes() {
-  try {
-    const riskTypesCollection = collection(db, 'riskTypes');
-    const existingRiskTypesSnapshot = await getDocs(riskTypesCollection);
-    const existingRiskTypes = existingRiskTypesSnapshot.docs.map(doc => doc.data().name.toLowerCase());
-
-    const newRiskTypes = riskTypesToSeed.filter(
-      (name) => !existingRiskTypes.includes(name.toLowerCase())
+  if (loading || !role) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="flex items-center space-x-4">
+            <Skeleton className="h-12 w-12 rounded-full" />
+            <div className="space-y-2">
+                <Skeleton className="h-4 w-[250px]" />
+                <Skeleton className="h-4 w-[200px]" />
+            </div>
+        </div>
+      </div>
     );
-
-    if (newRiskTypes.length === 0) {
-      return { success: true, count: 0, message: 'Todos os tipos de risco padrão já estavam cadastrados no banco de dados.' };
-    }
-
-    await addDocumentsInBatches('riskTypes', newRiskTypes);
-    
-    revalidatePath('/admin/risk-types');
-    revalidatePath('/incidents/new');
-
-    return { success: true, count: newRiskTypes.length };
-  } catch (error: any) {
-    console.error('Error seeding risk types:', error);
-    const errorMessage = error.message || 'Ocorreu um erro desconhecido.';
-    return { success: false, message: `Falha ao popular os tipos de risco: ${errorMessage}` };
   }
+
+  return (
+    <SidebarProvider>
+      <Sidebar>
+        <SidebarHeader>
+          <Logo />
+        </SidebarHeader>
+        <SidebarContent>
+          <SidebarMenu>
+            {menuItems.map((item) => (
+              <SidebarMenuItem key={item.href}>
+                <SidebarMenuButton
+                  isActive={
+                    item.exactMatch
+                      ? pathname === item.href
+                      : pathname.startsWith(item.href)
+                  }
+                  onClick={() => router.push(item.href)}
+                >
+                  <item.icon />
+                  <span>{item.label}</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
+            {role === 'admin' && (
+              <Collapsible defaultOpen={isSettingsActive}>
+                <SidebarMenuItem>
+                  <CollapsibleTrigger asChild>
+                    <SidebarMenuButton isSubmenu className="w-full">
+                      <Settings />
+                      <span>Configurações</span>
+                    </SidebarMenuButton>
+                  </CollapsibleTrigger>
+                </SidebarMenuItem>
+
+                <CollapsibleContent asChild>
+                  <SidebarMenuSub>
+                    {settingsMenuItems.map((item) => (
+                      <SidebarMenuSubItem key={item.href}>
+                        <SidebarMenuSubButton
+                          isActive={pathname.startsWith(item.href)}
+                          onClick={() => router.push(item.href)}
+                        >
+                          <item.icon />
+                          <span>{item.label}</span>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                    ))}
+                  </SidebarMenuSub>
+                </CollapsibleContent>
+              </Collapsible>
+            )}
+          </SidebarMenu>
+        </SidebarContent>
+        <SidebarFooter>
+          <UserProfile />
+        </SidebarFooter>
+      </Sidebar>
+      <SidebarInset>
+        <header className="flex h-14 items-center gap-4 border-b bg-background/50 backdrop-blur-sm px-4 lg:h-[60px] lg:px-6 sticky top-0 z-30">
+          <SidebarTrigger className="md:hidden" />
+          <h1 className="text-lg font-semibold md:text-2xl font-headline flex-1">
+            {currentItem?.label || 'Dashboard'}
+          </h1>
+        </header>
+        <main className="flex-1 p-4 md:p-6">{children}</main>
+      </SidebarInset>
+    </SidebarProvider>
+  );
 }
-
-export async function seedAuditors() {
-    try {
-      const auditorsCollection = collection(db, 'auditors');
-      const existingAuditorsSnapshot = await getDocs(auditorsCollection);
-      const existingAuditors = existingAuditorsSnapshot.docs.map(doc => doc.data().name.toLowerCase());
-  
-      const newAuditors = auditorsToSeed.filter(
-        (name) => !existingAuditors.includes(name.toLowerCase())
-      );
-  
-      if (newAuditors.length === 0) {
-        return { success: true, count: 0, message: 'Todos os auditores padrão já estavam cadastrados no banco de dados.' };
-      }
-  
-      await addDocumentsInBatches('auditors', newAuditors);
-      
-      revalidatePath('/admin/auditors');
-      revalidatePath('/incidents/new');
-  
-      return { success: true, count: newAuditors.length };
-    } catch (error: any) {
-      console.error('Error seeding auditors:', error);
-      const errorMessage = error.message || 'Ocorreu um erro desconhecido.';
-      return { success: false, message: `Falha ao popular os auditores: ${errorMessage}` };
-    }
-  }

@@ -80,11 +80,6 @@ const settingsMenuItems = [
     label: 'Conta',
     icon: KeyRound,
   },
-  {
-    href: '/admin/seed',
-    label: 'Popular Dados',
-    icon: Database,
-  },
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
