@@ -20,22 +20,28 @@ import {
   ChartContainer,
   ChartTooltipContent,
 } from '@/components/ui/chart';
-import { analyzeTrends, riskForecaster } from '@/lib/actions';
+import { analyzeTrends, riskForecaster, fetchIncidents } from '@/lib/actions';
 import type {
   AnalyzeTrendsOutput,
   RiskForecasterOutput,
 } from '@/lib/actions';
-import { incidents } from '@/lib/data';
+import type { SafetyIncident } from '@/lib/types';
 
 export function DashboardClient() {
   const [trends, setTrends] = useState<AnalyzeTrendsOutput | null>(null);
   const [forecast, setForecast] = useState<RiskForecasterOutput | null>(null);
+  const [incidents, setIncidents] = useState<SafetyIncident[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function getAIFeatures() {
       setLoading(true);
       try {
+        // Fetch incidents first
+        const incidentsData = await fetchIncidents();
+        setIncidents(incidentsData);
+
+        // Then run AI analysis
         const trendData = await analyzeTrends();
         setTrends(trendData);
 
@@ -93,7 +99,7 @@ export function DashboardClient() {
           <CardContent>
             <div className="text-2xl font-bold">{resolvedIncidents}</div>
             <p className="text-xs text-muted-foreground">
-              {((resolvedIncidents / totalIncidents) * 100).toFixed(1)}% resolvidos
+              {totalIncidents > 0 ? ((resolvedIncidents / totalIncidents) * 100).toFixed(1) : 0}% resolvidos
             </p>
           </CardContent>
         </Card>

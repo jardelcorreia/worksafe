@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { z } from 'zod';
@@ -25,14 +25,14 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { addRiskType, deleteRiskType } from '@/lib/actions';
-import { riskTypes as initialRiskTypes } from '@/lib/data';
+import { addRiskType, deleteRiskType, fetchRiskTypes } from '@/lib/actions';
 import { riskTypeSchema } from '@/lib/types';
 import type { RiskType } from '@/lib/types';
 
 export default function RiskTypesPage() {
   const { toast } = useToast();
-  const [riskTypes, setRiskTypes] = useState<RiskType[]>(initialRiskTypes);
+  const [riskTypes, setRiskTypes] = useState<RiskType[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const form = useForm<z.infer<typeof riskTypeSchema>>({
     resolver: zodResolver(riskTypeSchema),
@@ -41,29 +41,36 @@ export default function RiskTypesPage() {
     },
   });
 
+  useEffect(() => {
+    async function getRiskTypes() {
+        setLoading(true);
+        const riskTypesData = await fetchRiskTypes();
+        setRiskTypes(riskTypesData);
+        setLoading(false);
+    }
+    getRiskTypes();
+  }, []);
+
   async function handleAddRiskType(values: z.infer<typeof riskTypeSchema>) {
-    const newRiskType = { id: Date.now().toString(), name: values.name };
-    setRiskTypes((prev) => [...prev, newRiskType]);
-    form.reset();
-    const result = await addRiskType(newRiskType);
+    const result = await addRiskType(values);
     if (!result.success) {
       toast({
         title: 'Erro',
         description: 'Falha ao adicionar tipo de risco.',
         variant: 'destructive',
       });
-      setRiskTypes((prev) => prev.filter((rt) => rt.id !== newRiskType.id));
     } else {
         toast({
             title: 'Sucesso',
             description: 'Tipo de Risco adicionado com sucesso.',
         });
+        form.reset();
+        const riskTypesData = await fetchRiskTypes();
+        setRiskTypes(riskTypesData);
     }
   }
 
   async function handleDeleteRiskType(id: string) {
-    const originalRiskTypes = riskTypes;
-    setRiskTypes((prev) => prev.filter((rt) => rt.id !== id));
     const result = await deleteRiskType(id);
     if (!result.success) {
       toast({
@@ -71,13 +78,27 @@ export default function RiskTypesPage() {
         description: 'Falha ao excluir tipo de risco.',
         variant: 'destructive',
       });
-      setRiskTypes(originalRiskTypes);
     } else {
       toast({
         title: 'Sucesso',
         description: 'Tipo de Risco excluído com sucesso.',
       });
+      const riskTypesData = await fetchRiskTypes();
+      setRiskTypes(riskTypesData);
     }
+  }
+
+  if (loading) {
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Gerenciar Tipos de Risco</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <p>Carregando tipos de risco...</p>
+            </CardContent>
+        </Card>
+    )
   }
 
   return (

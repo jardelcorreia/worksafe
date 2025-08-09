@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -35,10 +35,10 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { addIncident } from '@/lib/actions';
+import { addIncident, fetchAuditors, fetchAreas, fetchRiskTypes } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
-import { PotentialLevels, StatusLevels, incidentSchema } from '@/lib/types';
-import { auditors, areas, riskTypes } from '@/lib/data';
+import { PotentialLevels, StatusLevels, incidentSchema, type Auditor, type Area, type RiskType } from '@/lib/types';
+
 
 const MAX_PHOTOS = 5;
 const MAX_FILE_SIZE_MB = 2;
@@ -50,6 +50,35 @@ export default function NewIncidentPage() {
   const { toast } = useToast();
   const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
   const [photoFiles, setPhotoFiles] = useState<File[]>([]);
+  const [auditors, setAuditors] = useState<Auditor[]>([]);
+  const [areas, setAreas] = useState<Area[]>([]);
+  const [riskTypes, setRiskTypes] = useState<RiskType[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadData() {
+      setIsLoading(true);
+      try {
+        const [auditorsData, areasData, riskTypesData] = await Promise.all([
+          fetchAuditors(),
+          fetchAreas(),
+          fetchRiskTypes(),
+        ]);
+        setAuditors(auditorsData);
+        setAreas(areasData);
+        setRiskTypes(riskTypesData);
+      } catch (error) {
+        toast({
+          title: 'Erro ao carregar dados',
+          description: 'Não foi possível carregar os dados necessários para o formulário.',
+          variant: 'destructive',
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadData();
+  }, [toast]);
 
   const form = useForm<z.infer<typeof incidentSchema>>({
     resolver: zodResolver(incidentSchema),
@@ -157,6 +186,19 @@ export default function NewIncidentPage() {
         variant: 'destructive',
       });
     }
+  }
+
+  if (isLoading) {
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Registrar Novo Incidente de Segurança</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <p>Carregando dados do formulário...</p>
+            </CardContent>
+        </Card>
+    )
   }
 
   return (
@@ -439,7 +481,7 @@ export default function NewIncidentPage() {
               />
             </div>
             <div className="flex justify-end">
-              <Button type="submit" disabled={form.formState.isSubmitting}>
+              <Button type="submit" disabled={form.formState.isSubmitting || isLoading}>
                 {form.formState.isSubmitting ? 'Enviando...' : 'Enviar Incidente'}
               </Button>
             </div>

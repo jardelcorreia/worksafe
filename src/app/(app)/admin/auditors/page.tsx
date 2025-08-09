@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { z } from 'zod';
@@ -25,15 +25,14 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { addAuditor, deleteAuditor } from '@/lib/actions';
-import { auditors as initialAuditors } from '@/lib/data';
+import { addAuditor, deleteAuditor, fetchAuditors } from '@/lib/actions';
 import { auditorSchema } from '@/lib/types';
 import type { Auditor } from '@/lib/types';
 
 export default function AuditorsPage() {
   const { toast } = useToast();
-  const [auditors, setAuditors] =
-    useState<Auditor[]>(initialAuditors);
+  const [auditors, setAuditors] = useState<Auditor[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const form = useForm<z.infer<typeof auditorSchema>>({
     resolver: zodResolver(auditorSchema),
@@ -42,29 +41,36 @@ export default function AuditorsPage() {
     },
   });
 
+  useEffect(() => {
+    async function getAuditors() {
+        setLoading(true);
+        const auditorsData = await fetchAuditors();
+        setAuditors(auditorsData);
+        setLoading(false);
+    }
+    getAuditors();
+  }, []);
+
   async function handleAddAuditor(values: z.infer<typeof auditorSchema>) {
-    const newAuditor = { id: Date.now().toString(), name: values.name };
-    setAuditors((prev) => [...prev, newAuditor]);
-    form.reset();
-    const result = await addAuditor(newAuditor);
+    const result = await addAuditor(values);
     if (!result.success) {
       toast({
         title: 'Erro',
         description: 'Falha ao adicionar auditor.',
         variant: 'destructive',
       });
-      setAuditors((prev) => prev.filter((a) => a.id !== newAuditor.id));
     } else {
         toast({
             title: 'Sucesso',
             description: 'Auditor adicionado com sucesso.',
         });
+        form.reset();
+        const auditorsData = await fetchAuditors();
+        setAuditors(auditorsData);
     }
   }
 
   async function handleDeleteAuditor(id: string) {
-    const originalAuditors = auditors;
-    setAuditors((prev) => prev.filter((a) => a.id !== id));
     const result = await deleteAuditor(id);
     if (!result.success) {
       toast({
@@ -72,13 +78,27 @@ export default function AuditorsPage() {
         description: 'Falha ao excluir auditor.',
         variant: 'destructive',
       });
-      setAuditors(originalAuditors);
     } else {
       toast({
         title: 'Sucesso',
         description: 'Auditor excluído com sucesso.',
       });
+      const auditorsData = await fetchAuditors();
+      setAuditors(auditorsData);
     }
+  }
+  
+  if (loading) {
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Gerenciar Auditores</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <p>Carregando auditores...</p>
+            </CardContent>
+        </Card>
+    )
   }
 
   return (

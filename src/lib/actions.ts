@@ -2,19 +2,80 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import {
+  collection,
+  addDoc,
+  getDocs,
+  deleteDoc,
+  doc,
+  query,
+  orderBy,
+} from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 import { analyzeTrends as analyzeTrendsFlow } from '@/ai/flows/trend-spotter';
 import { riskForecaster as riskForecasterFlow } from '@/ai/flows/risk-forecaster';
-import { incidents, auditors, areas, riskTypes } from './data';
 import type { SafetyIncident, Auditor, Area, RiskType } from './types';
-import { incidentSchema, auditorSchema, areaSchema, riskTypeSchema } from './types';
+import {
+  incidentSchema,
+  auditorSchema,
+  areaSchema,
+  riskTypeSchema,
+} from './types';
 
 // Export types for use in client components
 export type { AnalyzeTrendsOutput } from '@/ai/flows/trend-spotter';
 export type { RiskForecasterOutput } from '@/ai/flows/risk-forecaster';
 
+// Firestore collection getters
+async function getIncidents(): Promise<SafetyIncident[]> {
+  const incidentsCol = query(
+    collection(db, 'incidents'),
+    orderBy('date', 'desc')
+  );
+  const incidentSnapshot = await getDocs(incidentsCol);
+  return incidentSnapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  })) as SafetyIncident[];
+}
+
+async function getAuditors(): Promise<Auditor[]> {
+  const auditorsCol = query(
+    collection(db, 'auditors'),
+    orderBy('name', 'asc')
+  );
+  const auditorSnapshot = await getDocs(auditorsCol);
+  return auditorSnapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  })) as Auditor[];
+}
+
+async function getAreas(): Promise<Area[]> {
+  const areasCol = query(collection(db, 'areas'), orderBy('name', 'asc'));
+  const areaSnapshot = await getDocs(areasCol);
+  return areaSnapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  })) as Area[];
+}
+
+async function getRiskTypes(): Promise<RiskType[]> {
+  const riskTypesCol = query(
+    collection(db, 'riskTypes'),
+    orderBy('name', 'asc')
+  );
+  const riskTypeSnapshot = await getDocs(riskTypesCol);
+  return riskTypeSnapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  })) as RiskType[];
+}
+
 // AI Actions
 export async function analyzeTrends() {
   try {
+    const incidents = await getIncidents();
     const aiInput = incidents.map((i) => ({
       área: i.area,
       tipoDeSituaçãoDeRisco: i.riskType,
@@ -31,6 +92,7 @@ export async function analyzeTrends() {
 
 export async function riskForecaster(identifiedTrends: string) {
   try {
+    const incidents = await getIncidents();
     const historicalData = incidents
       .map(
         (i) =>
@@ -50,88 +112,111 @@ export async function riskForecaster(identifiedTrends: string) {
 }
 
 // Incident Actions
-export async function addIncident(data: z.infer<typeof incidentSchema>) {
-  const newIncident: SafetyIncident = {
-    ...data,
-    id: String(incidents.length + 1),
-    timestamp: new Date().toLocaleString('en-US'),
-    date: new Date(data.date).toISOString().split('T')[0],
-    deadline: new Date(data.deadline).toISOString().split('T')[0],
-    photos: data.photos || [],
-  };
+export async function fetchIncidents() {
+  return await getIncidents();
+}
 
-  // In a real app, you'd save this to a database
-  incidents.unshift(newIncident);
-  revalidatePath('/incidents');
-  revalidatePath('/dashboard');
-  return { success: true, message: 'Incidente adicionado com sucesso.' };
+export async function addIncident(data: z.infer<typeof incidentSchema>) {
+  try {
+    await addDoc(collection(db, 'incidents'), {
+      ...data,
+      timestamp: new Date().toLocaleString('en-US'),
+      date: new Date(data.date).toISOString().split('T')[0],
+      deadline: new Date(data.deadline).toISOString().split('T')[0],
+      photos: data.photos || [],
+    });
+    revalidatePath('/incidents');
+    revalidatePath('/dashboard');
+    return { success: true, message: 'Incidente adicionado com sucesso.' };
+  } catch (error) {
+    console.error('Error adding incident:', error);
+    return { success: false, message: 'Falha ao adicionar incidente.' };
+  }
 }
 
 // Auditor Actions
+export async function fetchAuditors() {
+    return await getAuditors();
+}
+
 export async function addAuditor(data: z.infer<typeof auditorSchema>) {
-  const newAuditor: Auditor = {
-    id: String(auditors.length + 1),
-    name: data.name,
-  };
-  auditors.push(newAuditor);
-  revalidatePath('/admin/auditors');
-  revalidatePath('/incidents/new');
-  return { success: true, message: 'Auditor adicionado com sucesso.' };
+  try {
+    await addDoc(collection(db, 'auditors'), data);
+    revalidatePath('/admin/auditors');
+    revalidatePath('/incidents/new');
+    return { success: true, message: 'Auditor adicionado com sucesso.' };
+  } catch (error) {
+    console.error('Error adding auditor:', error);
+    return { success: false, message: 'Falha ao adicionar auditor.' };
+  }
 }
 
 export async function deleteAuditor(id: string) {
-  const index = auditors.findIndex((a) => a.id === id);
-  if (index !== -1) {
-    auditors.splice(index, 1);
+  try {
+    await deleteDoc(doc(db, 'auditors', id));
     revalidatePath('/admin/auditors');
     revalidatePath('/incidents/new');
     return { success: true, message: 'Auditor excluído com sucesso.' };
+  } catch (error) {
+    console.error('Error deleting auditor:', error);
+    return { success: false, message: 'Falha ao excluir auditor.' };
   }
-  return { success: false, message: 'Auditor não encontrado.' };
 }
 
 // Area Actions
+export async function fetchAreas() {
+    return await getAreas();
+}
+
 export async function addArea(data: z.infer<typeof areaSchema>) {
-    const newArea: Area = {
-      id: String(areas.length + 1),
-      name: data.name,
-    };
-    areas.push(newArea);
+  try {
+    await addDoc(collection(db, 'areas'), data);
     revalidatePath('/admin/areas');
     revalidatePath('/incidents/new');
     return { success: true, message: 'Área adicionada com sucesso.' };
+  } catch (error) {
+    console.error('Error adding area:', error);
+    return { success: false, message: 'Falha ao adicionar área.' };
   }
-  
-  export async function deleteArea(id: string) {
-    const index = areas.findIndex((a) => a.id === id);
-    if (index !== -1) {
-      areas.splice(index, 1);
-      revalidatePath('/admin/areas');
-      revalidatePath('/incidents/new');
-      return { success: true, message: 'Área excluída com sucesso.' };
-    }
-    return { success: false, message: 'Área não encontrada.' };
+}
+
+export async function deleteArea(id: string) {
+  try {
+    await deleteDoc(doc(db, 'areas', id));
+    revalidatePath('/admin/areas');
+    revalidatePath('/incidents/new');
+    return { success: true, message: 'Área excluída com sucesso.' };
+  } catch (error) {
+    console.error('Error deleting area:', error);
+    return { success: false, message: 'Falha ao excluir área.' };
   }
+}
 
 // Risk Type Actions
+export async function fetchRiskTypes() {
+    return await getRiskTypes();
+}
+
 export async function addRiskType(data: z.infer<typeof riskTypeSchema>) {
-    const newRiskType: RiskType = {
-        id: String(riskTypes.length + 1),
-        name: data.name,
-    };
-    riskTypes.push(newRiskType);
+  try {
+    await addDoc(collection(db, 'riskTypes'), data);
     revalidatePath('/admin/risk-types');
     revalidatePath('/incidents/new');
     return { success: true, message: 'Tipo de Risco adicionado com sucesso.' };
+  } catch (error) {
+    console.error('Error adding risk type:', error);
+    return { success: false, message: 'Falha ao adicionar tipo de risco.' };
+  }
 }
 
 export async function deleteRiskType(id: string) {
-    const index = riskTypes.findIndex((rt) => rt.id === id);
-    if (index !== -1) {
-        riskTypes.splice(index, 1);
-        revalidatePath('/admin/risk-types');
-        revalidatePath('/incidents/new');
-        return { success: true, message: 'Tipo de Risco excluído com sucesso.' };
-    }
-    return { success: false, message: 'Tipo de Risco não encontrado.' };
+  try {
+    await deleteDoc(doc(db, 'riskTypes', id));
+    revalidatePath('/admin/risk-types');
+    revalidatePath('/incidents/new');
+    return { success: true, message: 'Tipo de Risco excluído com sucesso.' };
+  } catch (error) {
+    console.error('Error deleting risk type:', error);
+    return { success: false, message: 'Falha ao excluir tipo de risco.' };
+  }
 }

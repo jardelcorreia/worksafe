@@ -1,12 +1,12 @@
 import Link from 'next/link';
 import { PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { incidents } from '@/lib/data';
+import { fetchIncidents } from '@/lib/actions';
 import { columns } from './columns';
 import { DataTable } from './data-table';
 
 export default async function IncidentsPage() {
-  const data = incidents;
+  const data = await fetchIncidents();
 
   return (
     <div className="space-y-4">

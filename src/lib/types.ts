@@ -39,12 +39,12 @@ export const incidentSchema = z.object({
   auditor: z.string().min(1, 'Auditor é obrigatório.'),
   date: z.string(),
   riskType: z.string().min(1, 'Tipo de Risco é obrigatório.'),
-  potential: z.enum(['Alto', 'Médio', 'Baixo', 'Sem Desvio']),
+  potential: z.enum(PotentialLevels),
   description: z.string().min(1, 'Descrição é obrigatória.'),
   correctiveAction: z.string().min(1, 'Ação corretiva é obrigatória.'),
   responsible: z.string().min(1, 'Responsável/Ação é obrigatório(a).'),
   deadline: z.string(),
-  status: z.enum(['Resolvido', 'Em Andamento', 'Satisfatório']),
+  status: z.enum(StatusLevels),
   photos: z.array(z.string()).optional(),
 });
 

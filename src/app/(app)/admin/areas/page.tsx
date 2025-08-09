@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { z } from 'zod';
@@ -25,14 +25,14 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { addArea, deleteArea } from '@/lib/actions';
-import { areas as initialAreas } from '@/lib/data';
+import { addArea, deleteArea, fetchAreas } from '@/lib/actions';
 import { areaSchema } from '@/lib/types';
 import type { Area } from '@/lib/types';
 
 export default function AreasPage() {
   const { toast } = useToast();
-  const [areas, setAreas] = useState<Area[]>(initialAreas);
+  const [areas, setAreas] = useState<Area[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const form = useForm<z.infer<typeof areaSchema>>({
     resolver: zodResolver(areaSchema),
@@ -41,29 +41,36 @@ export default function AreasPage() {
     },
   });
 
+  useEffect(() => {
+    async function getAreas() {
+        setLoading(true);
+        const areasData = await fetchAreas();
+        setAreas(areasData);
+        setLoading(false);
+    }
+    getAreas();
+  }, [])
+
   async function handleAddArea(values: z.infer<typeof areaSchema>) {
-    const newArea = { id: Date.now().toString(), name: values.name };
-    setAreas((prev) => [...prev, newArea]);
-    form.reset();
-    const result = await addArea(newArea);
+    const result = await addArea(values);
     if (!result.success) {
       toast({
         title: 'Erro',
         description: 'Falha ao adicionar área.',
         variant: 'destructive',
       });
-      setAreas((prev) => prev.filter((a) => a.id !== newArea.id));
     } else {
-        toast({
-            title: 'Sucesso',
-            description: 'Área adicionada com sucesso.',
-        });
+      toast({
+          title: 'Sucesso',
+          description: 'Área adicionada com sucesso.',
+      });
+      form.reset();
+      const areasData = await fetchAreas();
+      setAreas(areasData);
     }
   }
 
   async function handleDeleteArea(id: string) {
-    const originalAreas = areas;
-    setAreas((prev) => prev.filter((a) => a.id !== id));
     const result = await deleteArea(id);
     if (!result.success) {
       toast({
@@ -71,13 +78,27 @@ export default function AreasPage() {
         description: 'Falha ao excluir área.',
         variant: 'destructive',
       });
-      setAreas(originalAreas);
     } else {
       toast({
         title: 'Sucesso',
         description: 'Área excluída com sucesso.',
       });
+      const areasData = await fetchAreas();
+      setAreas(areasData);
     }
+  }
+  
+  if (loading) {
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Gerenciar Áreas</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <p>Carregando áreas...</p>
+            </CardContent>
+        </Card>
+    )
   }
 
   return (
