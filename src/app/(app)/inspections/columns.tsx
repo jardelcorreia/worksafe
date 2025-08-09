@@ -299,25 +299,6 @@ export const columns: ColumnDef<SafetyInspection>[] = [
     header: 'Auditor',
   },
   {
-    accessorKey: 'photos',
-    header: 'Fotos',
-    cell: ({ row }) => {
-        const inspection = row.original as SafetyInspection;
-        const photos = inspection.photos;
-      
-        if (photos && photos.length > 0) {
-          return (
-            <DetailsModal inspection={inspection}>
-                <button className="flex items-center justify-center p-2 rounded-md hover:bg-muted">
-                    <Camera className="h-5 w-5 text-muted-foreground" />
-                </button>
-            </DetailsModal>
-          );
-        }
-        return null;
-      },
-  },
-  {
     id: 'actions',
     cell: ActionsCell,
   },
