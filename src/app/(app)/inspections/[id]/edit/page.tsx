@@ -47,6 +47,7 @@ const COMPRESSION_QUALITY = 0.7;
 const MAX_DIMENSION = 1024;
 
 export default function EditInspectionPage({ params }: { params: { id: string } }) {
+  const { id } = params;
   const router = useRouter();
   const { toast } = useToast();
   const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
@@ -78,7 +79,7 @@ export default function EditInspectionPage({ params }: { params: { id: string } 
       setIsLoading(true);
       try {
         const [inspectionData, auditorsData, areasData, riskTypesData] = await Promise.all([
-            fetchInspectionById(params.id),
+            fetchInspectionById(id),
             fetchAuditors(),
             fetchAreas(),
             fetchRiskTypes(),
@@ -117,7 +118,7 @@ export default function EditInspectionPage({ params }: { params: { id: string } 
       }
     }
     loadData();
-  }, [params.id, form, toast, router]);
+  }, [id, form, toast, router]);
 
   const compressImage = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -190,7 +191,7 @@ export default function EditInspectionPage({ params }: { params: { id: string } 
 
   async function onSubmit(values: z.infer<typeof inspectionSchema>) {
     values.photos = photoPreviews;
-    const result = await updateInspection(params.id, values);
+    const result = await updateInspection(id, values);
     if (result.success) {
       toast({
         title: 'Sucesso',
