@@ -114,7 +114,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                         <SidebarMenuButton
                             isSubmenu
                             className="w-full"
-                            tooltip="Configurações"
                             >
                                 <Settings />
                                 <span>Configurações</span>
@@ -126,7 +125,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     <SidebarMenuSub>
                         {settingsMenuItems.map((item) => (
                              <SidebarMenuSubItem key={item.href}>
-                                <SidebarMenuSubButton asChild isActive={pathname.startsWith(item.href)}>
+                                <SidebarMenuSubButton asChild isActive={pathname.startsWith(item.href)} tooltip={item.label}>
                                     <Link href={item.href}>
                                         <item.icon/>
                                         <span>{item.label}</span>
