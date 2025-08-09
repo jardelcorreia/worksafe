@@ -1,7 +1,7 @@
 
 'use server';
 
-import { collection, addDoc, getDocs, writeBatch } from 'firebase/firestore';
+import { collection, doc, getDocs, writeBatch } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { revalidatePath } from 'next/cache';
 
@@ -32,14 +32,13 @@ const riskTypesToSeed = [
 ];
 
 async function addDocumentsInBatches(newRiskTypes: string[]) {
-    const riskTypesCollection = collection(db, 'riskTypes');
-    const batchSize = 10;
+    const batchSize = 400; // Firestore allows up to 500 operations per batch
     
     for (let i = 0; i < newRiskTypes.length; i += batchSize) {
         const batch = writeBatch(db);
         const chunk = newRiskTypes.slice(i, i + batchSize);
         chunk.forEach(name => {
-            const docRef = collection(db, 'riskTypes').doc();
+            const docRef = doc(collection(db, 'riskTypes'));
             batch.set(docRef, { name });
         });
         await batch.commit();
