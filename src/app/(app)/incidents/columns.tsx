@@ -1,7 +1,7 @@
 'use client';
 
 import type { ColumnDef } from '@tanstack/react-table';
-import { MoreHorizontal, ArrowUpDown } from 'lucide-react';
+import { MoreHorizontal, ArrowUpDown, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -138,6 +138,28 @@ export const columns: ColumnDef<SafetyIncident>[] = [
   {
     accessorKey: 'auditor',
     header: 'Auditor',
+  },
+  {
+    accessorKey: 'photos',
+    header: 'Fotos',
+    cell: ({ row }) => {
+      const photos = row.getValue('photos') as string[];
+      if (photos && photos.length > 0) {
+        return (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <Camera className="h-5 w-5 text-muted-foreground" />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{photos.length} foto(s) anexada(s)</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        );
+      }
+      return null;
+    },
   },
   {
     id: 'actions',

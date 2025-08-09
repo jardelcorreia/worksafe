@@ -53,6 +53,7 @@ export const incidents: SafetyIncident[] = [
     responsible: 'Equipe de Manutenção',
     deadline: '2025-05-27',
     status: 'Resolvido',
+    photos: [],
   },
   {
     id: '2',
@@ -67,6 +68,7 @@ export const incidents: SafetyIncident[] = [
     responsible: 'Contrex',
     deadline: '2025-05-28',
     status: 'Resolvido',
+    photos: [],
   },
   {
     id: '3',
@@ -81,6 +83,7 @@ export const incidents: SafetyIncident[] = [
     responsible: 'Ozivan Torres',
     deadline: '2025-05-30',
     status: 'Resolvido',
+    photos: [],
   },
   {
     id: '4',
@@ -95,6 +98,7 @@ export const incidents: SafetyIncident[] = [
     responsible: 'Ana Lucia',
     deadline: '2025-05-27',
     status: 'Resolvido',
+    photos: [],
   },
   {
     id: '5',
@@ -109,6 +113,7 @@ export const incidents: SafetyIncident[] = [
     responsible: 'Ana Lucia',
     deadline: '2025-05-27',
     status: 'Resolvido',
+    photos: [],
   },
   {
     id: '6',
@@ -123,6 +128,7 @@ export const incidents: SafetyIncident[] = [
     responsible: 'Ana Lucia',
     deadline: '2025-05-27',
     status: 'Resolvido',
+    photos: [],
   },
   {
     id: '7',
@@ -137,6 +143,7 @@ export const incidents: SafetyIncident[] = [
     responsible: 'Ana Lucia',
     deadline: '2025-05-27',
     status: 'Resolvido',
+    photos: [],
   },
   {
     id: '8',
@@ -151,6 +158,7 @@ export const incidents: SafetyIncident[] = [
     responsible: 'Ana Lucia',
     deadline: '2025-05-28',
     status: 'Resolvido',
+    photos: [],
   },
   {
     id: '9',
@@ -165,6 +173,7 @@ export const incidents: SafetyIncident[] = [
     responsible: 'Ana Lucia',
     deadline: '2025-05-28',
     status: 'Resolvido',
+    photos: [],
   },
   {
     id: '10',
@@ -179,6 +188,7 @@ export const incidents: SafetyIncident[] = [
     responsible: 'Diego nogueira da costa',
     deadline: '2025-05-30',
     status: 'Em Andamento',
+    photos: [],
   },
   {
     id: '11',
@@ -193,6 +203,7 @@ export const incidents: SafetyIncident[] = [
     responsible: 'Ana Lucia',
     deadline: '2025-05-29',
     status: 'Resolvido',
+    photos: [],
   },
   {
     id: '12',
@@ -207,6 +218,7 @@ export const incidents: SafetyIncident[] = [
     responsible: 'Ana Lucia',
     deadline: '2025-05-31',
     status: 'Resolvido',
+    photos: [],
   },
   {
     id: '13',
@@ -221,6 +233,7 @@ export const incidents: SafetyIncident[] = [
     responsible: 'Ana Lucia',
     deadline: '2025-05-31',
     status: 'Resolvido',
+    photos: [],
   },
   {
     id: '14',
@@ -235,6 +248,7 @@ export const incidents: SafetyIncident[] = [
     responsible: 'Ana Lucia',
     deadline: '2025-05-31',
     status: 'Resolvido',
+    photos: [],
   },
   {
     id: '15',
@@ -249,6 +263,7 @@ export const incidents: SafetyIncident[] = [
     responsible: 'Gerson Marcena',
     deadline: '2025-06-02',
     status: 'Resolvido',
+    photos: [],
   },
   {
     id: '16',
@@ -263,6 +278,7 @@ export const incidents: SafetyIncident[] = [
     responsible: 'Operador da Ponte',
     deadline: '2025-06-02',
     status: 'Resolvido',
+    photos: [],
   },
   {
     id: '17',
@@ -277,6 +293,7 @@ export const incidents: SafetyIncident[] = [
     responsible: 'Colaborador',
     deadline: '2025-05-29',
     status: 'Resolvido',
+    photos: [],
   },
   {
     id: '18',
@@ -291,6 +308,7 @@ export const incidents: SafetyIncident[] = [
     responsible: 'Sinaleiro',
     deadline: '2025-05-29',
     status: 'Resolvido',
+    photos: [],
   },
   {
     id: '19',
@@ -305,6 +323,7 @@ export const incidents: SafetyIncident[] = [
     responsible: 'Equipe de Isolamento',
     deadline: '2025-06-02',
     status: 'Resolvido',
+    photos: [],
   },
   {
     id: '20',
@@ -319,5 +338,6 @@ export const incidents: SafetyIncident[] = [
     responsible: 'Gerson Marcena',
     deadline: '2025-06-03',
     status: 'Resolvido',
+    photos: [],
   },
 ];

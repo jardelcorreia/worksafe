@@ -1,11 +1,13 @@
 'use client';
 
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { CalendarIcon } from 'lucide-react';
+import { CalendarIcon, Upload, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -38,9 +40,17 @@ import { useToast } from '@/hooks/use-toast';
 import { PotentialLevels, StatusLevels, incidentSchema } from '@/lib/types';
 import { auditors, areas, riskTypes } from '@/lib/data';
 
+const MAX_PHOTOS = 5;
+const MAX_FILE_SIZE_MB = 2;
+const COMPRESSION_QUALITY = 0.7;
+const MAX_DIMENSION = 1024;
+
 export default function NewIncidentPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
+  const [photoFiles, setPhotoFiles] = useState<File[]>([]);
+
   const form = useForm<z.infer<typeof incidentSchema>>({
     resolver: zodResolver(incidentSchema),
     defaultValues: {
@@ -54,10 +64,85 @@ export default function NewIncidentPage() {
       status: 'Em Andamento',
       date: new Date().toISOString(),
       deadline: new Date().toISOString(),
+      photos: [],
     },
   });
 
+  const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = document.createElement('img');
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let { width, height } = img;
+
+          if (width > height) {
+            if (width > MAX_DIMENSION) {
+              height = Math.round((height * MAX_DIMENSION) / width);
+              width = MAX_DIMENSION;
+            }
+          } else if (height > MAX_DIMENSION) {
+            width = Math.round((width * MAX_DIMENSION) / height);
+            height = MAX_DIMENSION;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL(file.type, COMPRESSION_QUALITY));
+        };
+        img.onerror = (error) => reject(error);
+      };
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
+  const handlePhotoChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    if (!files.length) return;
+
+    if (photoPreviews.length + files.length > MAX_PHOTOS) {
+      toast({
+        title: 'Limite de fotos excedido',
+        description: `Você pode enviar no máximo ${MAX_PHOTOS} fotos.`,
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const newPreviews: string[] = [];
+    const newFiles: File[] = [];
+
+    for (const file of files) {
+      if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+          toast({
+              title: 'Arquivo muito grande',
+              description: `O arquivo ${file.name} excede o tamanho máximo de ${MAX_FILE_SIZE_MB}MB.`,
+              variant: 'destructive',
+          });
+          continue;
+      }
+      const compressedDataUrl = await compressImage(file);
+      newPreviews.push(compressedDataUrl);
+      newFiles.push(file);
+    }
+    
+    setPhotoPreviews((prev) => [...prev, ...newPreviews]);
+    setPhotoFiles((prev) => [...prev, ...newFiles]);
+  };
+
+  const handleRemovePhoto = (index: number) => {
+    setPhotoPreviews((prev) => prev.filter((_, i) => i !== index));
+    setPhotoFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+
   async function onSubmit(values: z.infer<typeof incidentSchema>) {
+    values.photos = photoPreviews;
     const result = await addIncident(values);
     if (result.success) {
       toast({
@@ -257,6 +342,40 @@ export default function NewIncidentPage() {
                   </FormItem>
                 )}
               />
+              <div className="lg:col-span-3">
+                <FormLabel>Fotos (até {MAX_PHOTOS})</FormLabel>
+                <FormControl>
+                    <div className="mt-2 flex items-center justify-center w-full">
+                        <label htmlFor="dropzone-file" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-muted hover:bg-background">
+                            <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                <Upload className="w-8 h-8 mb-2 text-muted-foreground" />
+                                <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Clique para enviar</span> ou arraste e solte</p>
+                                <p className="text-xs text-muted-foreground">PNG, JPG ou GIF (MAX. {MAX_FILE_SIZE_MB}MB por foto)</p>
+                            </div>
+                            <input id="dropzone-file" type="file" className="hidden" multiple accept="image/*" onChange={handlePhotoChange} disabled={photoPreviews.length >= MAX_PHOTOS} />
+                        </label>
+                    </div>
+                </FormControl>
+                {photoPreviews.length > 0 && (
+                    <div className="mt-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                        {photoPreviews.map((src, index) => (
+                            <div key={index} className="relative group">
+                                <Image src={src} alt={`Preview ${index + 1}`} width={150} height={150} className="rounded-md object-cover w-full aspect-square" />
+                                <Button
+                                    type="button"
+                                    variant="destructive"
+                                    size="icon"
+                                    className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100"
+                                    onClick={() => handleRemovePhoto(index)}
+                                >
+                                    <X className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        ))}
+                    </div>
+                )}
+                 <FormMessage />
+              </div>
               <FormField
                 control={form.control}
                 name="deadline"

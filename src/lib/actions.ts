@@ -57,6 +57,7 @@ export async function addIncident(data: z.infer<typeof incidentSchema>) {
     timestamp: new Date().toLocaleString('en-US'),
     date: new Date(data.date).toISOString().split('T')[0],
     deadline: new Date(data.deadline).toISOString().split('T')[0],
+    photos: data.photos || [],
   };
 
   // In a real app, you'd save this to a database

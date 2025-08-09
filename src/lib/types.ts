@@ -28,6 +28,7 @@ export type SafetyIncident = {
   responsible: string;
   deadline: string;
   status: 'Resolvido' | 'Em Andamento' | 'Satisfatório';
+  photos?: string[];
 };
 
 export const PotentialLevels = ['Alto', 'Médio', 'Baixo', 'Sem Desvio'] as const;
@@ -44,6 +45,7 @@ export const incidentSchema = z.object({
   responsible: z.string().min(1, 'Responsável/Ação é obrigatório(a).'),
   deadline: z.string(),
   status: z.enum(['Resolvido', 'Em Andamento', 'Satisfatório']),
+  photos: z.array(z.string()).optional(),
 });
 
 export const auditorSchema = z.object({
