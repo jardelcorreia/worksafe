@@ -11,6 +11,8 @@ import {
   doc,
   query,
   orderBy,
+  where,
+  Timestamp,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { analyzeTrends as analyzeTrendsFlow } from '@/ai/flows/trend-spotter';
@@ -23,16 +25,31 @@ import {
   riskTypeSchema,
 } from './types';
 
+type DateFilters = {
+    from?: Date;
+    to?: Date;
+}
+
 // Export types for use in client components
 export type { AnalyzeTrendsOutput } from '@/ai/flows/trend-spotter';
 export type { RiskForecasterOutput } from '@/ai/flows/risk-forecaster';
 
 // Firestore collection getters
-async function getInspections(): Promise<SafetyInspection[]> {
+async function getInspections(filters?: DateFilters): Promise<SafetyInspection[]> {
+  const queryConstraints = [orderBy('date', 'desc')];
+
+  if (filters?.from) {
+      queryConstraints.push(where('date', '>=', Timestamp.fromDate(filters.from).toDate().toISOString().split('T')[0]));
+  }
+  if (filters?.to) {
+      queryConstraints.push(where('date', '<=', Timestamp.fromDate(filters.to).toDate().toISOString().split('T')[0]));
+  }
+
   const inspectionsCol = query(
     collection(db, 'inspections'),
-    orderBy('date', 'desc')
+    ...queryConstraints
   );
+
   const inspectionSnapshot = await getDocs(inspectionsCol);
   return inspectionSnapshot.docs.map((doc) => ({
     id: doc.id,
@@ -72,9 +89,12 @@ async function getRiskTypes(): Promise<RiskType[]> {
 
 
 // AI Actions
-export async function analyzeTrends() {
+export async function analyzeTrends(filters?: DateFilters) {
   try {
-    const inspections = await getInspections();
+    const inspections = await getInspections(filters);
+    if (inspections.length === 0) {
+        return { mostFrequentAreas: [], mostFrequentRiskTypes: [], riskSummary: '' };
+    }
     const aiInput = inspections.map((i) => ({
       área: i.area,
       tipoDeSituaçãoDeRisco: i.riskType,
@@ -89,9 +109,12 @@ export async function analyzeTrends() {
   }
 }
 
-export async function riskForecaster(identifiedTrends: string) {
+export async function riskForecaster(identifiedTrends: string, filters?: DateFilters) {
   try {
-    const inspections = await getInspections();
+    const inspections = await getInspections(filters);
+    if (inspections.length === 0) {
+        return { predictedIssues: '', reasoning: '', preventativeActions: '' };
+    }
     const historicalData = inspections
       .map(
         (i) =>
@@ -111,8 +134,8 @@ export async function riskForecaster(identifiedTrends: string) {
 }
 
 // Inspection Actions
-export async function fetchInspections() {
-  return await getInspections();
+export async function fetchInspections(filters?: DateFilters) {
+  return await getInspections(filters);
 }
 
 export async function addInspection(data: z.infer<typeof inspectionSchema>) {
@@ -210,7 +233,7 @@ export async function addRiskType(data: z.infer<typeof riskTypeSchema>) {
 
 export async function deleteRiskType(id: string) {
     try {
-        await deleteDoc(doc(db, 'riskTypes', id));
+        await deleteDoc(doc(db, 'riskTypes'), id);
         revalidatePath('/admin/risk-types');
         revalidatePath('/inspections/new');
         return { success: true, message: 'Tipo de risco excluído com sucesso.' };
@@ -219,3 +242,5 @@ export async function deleteRiskType(id: string) {
         return { success: false, message: 'Falha ao excluir tipo de risco.' };
     }
 }
+
+    

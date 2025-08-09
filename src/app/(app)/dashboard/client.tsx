@@ -11,8 +11,12 @@ import {
   Info,
   ShieldAlert,
   Clock,
+  Calendar as CalendarIcon,
 } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip } from 'recharts';
+import { DateRange } from 'react-day-picker';
+import { addDays, format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import {
   Card,
   CardContent,
@@ -20,6 +24,13 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import {
   ChartContainer,
   ChartTooltipContent,
@@ -31,6 +42,8 @@ import type {
   RiskForecasterOutput,
 } from '@/lib/actions';
 import type { SafetyInspection } from '@/lib/types';
+import { cn } from '@/lib/utils';
+
 
 export function DashboardClient() {
   const [trends, setTrends] = useState<AnalyzeTrendsOutput | null>(null);
@@ -38,21 +51,33 @@ export function DashboardClient() {
   const [inspections, setInspections] = useState<SafetyInspection[]>([]);
   const [loading, setLoading] = useState(true);
   const [hasData, setHasData] = useState(false);
+  const [date, setDate] = useState<DateRange | undefined>({
+    from: addDays(new Date(), -30),
+    to: new Date(),
+  });
 
-  useEffect(() => {
-    async function getAIFeatures() {
+  async function getAIFeatures(filterDate?: DateRange) {
       setLoading(true);
       try {
-        const inspectionsData = await fetchInspections();
+        const inspectionsData = await fetchInspections({
+            from: filterDate?.from,
+            to: filterDate?.to
+        });
         setInspections(inspectionsData);
 
         if (inspectionsData.length > 0) {
           setHasData(true);
-          const trendData = await analyzeTrends();
+          const trendData = await analyzeTrends({
+            from: filterDate?.from,
+            to: filterDate?.to
+          });
           setTrends(trendData);
 
           if (trendData?.riskSummary) {
-            const forecastData = await riskForecaster(trendData.riskSummary);
+            const forecastData = await riskForecaster(trendData.riskSummary, {
+                from: filterDate?.from,
+                to: filterDate?.to
+            });
             setForecast(forecastData);
           }
         } else {
@@ -64,7 +89,9 @@ export function DashboardClient() {
         setLoading(false);
       }
     }
-    getAIFeatures();
+
+  useEffect(() => {
+    getAIFeatures(date);
   }, []);
 
   const totalInspections = inspections.length;
@@ -89,6 +116,50 @@ export function DashboardClient() {
 
   return (
     <div className="grid gap-6">
+        <div className="flex flex-col sm:flex-row items-center gap-4">
+            <Popover>
+            <PopoverTrigger asChild>
+                <Button
+                id="date"
+                variant={'outline'}
+                className={cn(
+                    'w-full sm:w-[300px] justify-start text-left font-normal',
+                    !date && 'text-muted-foreground'
+                )}
+                >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {date?.from ? (
+                    date.to ? (
+                    <>
+                        {format(date.from, 'LLL dd, y', { locale: ptBR })} -{' '}
+                        {format(date.to, 'LLL dd, y', { locale: ptBR })}
+                    </>
+                    ) : (
+                    format(date.from, 'LLL dd, y', { locale: ptBR })
+                    )
+                ) : (
+                    <span>Escolha um período</span>
+                )}
+                </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                initialFocus
+                mode="range"
+                defaultMonth={date?.from}
+                selected={date}
+                onSelect={setDate}
+                numberOfMonths={2}
+                locale={ptBR}
+                />
+            </PopoverContent>
+            </Popover>
+            <Button onClick={() => getAIFeatures(date)} disabled={loading}>
+                {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                Analisar Período
+            </Button>
+      </div>
+
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -100,7 +171,7 @@ export function DashboardClient() {
           <CardContent>
             <div className="text-2xl font-bold">{totalInspections}</div>
             <p className="text-xs text-muted-foreground">
-              Total de inspeções registradas
+              Total de inspeções registradas no período
             </p>
           </CardContent>
         </Card>
@@ -154,7 +225,7 @@ export function DashboardClient() {
             <Info className="h-4 w-4" />
             <AlertTitle>Nenhum dado para analisar</AlertTitle>
             <AlertDescription>
-                Ainda não há inspeções registradas. Assim que a primeira inspeção for adicionada, os insights de IA aparecerão aqui.
+                Não foram encontradas inspeções para o período selecionado. Por favor, ajuste as datas e tente novamente.
             </AlertDescription>
         </Alert>
       ) : (
@@ -269,3 +340,5 @@ export function DashboardClient() {
     </div>
   );
 }
+
+    
