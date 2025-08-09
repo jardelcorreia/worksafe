@@ -27,16 +27,12 @@ import {
   SidebarMenuSubItem,
 } from '@/components/ui/sidebar';
 import { Logo } from '@/components/icons';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import { UserProfile } from './user-profile';
 
 const menuItems = [
   {
@@ -58,28 +54,30 @@ const menuItems = [
 ];
 
 const settingsMenuItems = [
-    {
-        href: '/admin/auditors',
-        label: 'Auditores',
-        icon: Users,
-    },
-    {
-        href: '/admin/areas',
-        label: 'Áreas',
-        icon: Building,
-    },
-    {
-        href: '/admin/risk-types',
-        label: 'Tipos de Risco',
-        icon: AlertTriangleIcon,
-    },
-]
+  {
+    href: '/admin/auditors',
+    label: 'Auditores',
+    icon: Users,
+  },
+  {
+    href: '/admin/areas',
+    label: 'Áreas',
+    icon: Building,
+  },
+  {
+    href: '/admin/risk-types',
+    label: 'Tipos de Risco',
+    icon: AlertTriangleIcon,
+  },
+];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
 
-  const isSettingsActive = settingsMenuItems.some(item => pathname.startsWith(item.href));
+  const isSettingsActive = settingsMenuItems.some((item) =>
+    pathname.startsWith(item.href)
+  );
 
   return (
     <SidebarProvider>
@@ -93,7 +91,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <SidebarMenuItem key={item.href}>
                 <SidebarMenuButton
                   isActive={
-                    item.exactMatch ? pathname === item.href : pathname.startsWith(item.href)
+                    item.exactMatch
+                      ? pathname === item.href
+                      : pathname.startsWith(item.href)
                   }
                   onClick={() => router.push(item.href)}
                 >
@@ -102,78 +102,45 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 </SidebarMenuButton>
               </SidebarMenuItem>
             ))}
-             <Collapsible defaultOpen={isSettingsActive}>
-                <SidebarMenuItem>
-                    <CollapsibleTrigger asChild>
-                        <SidebarMenuButton
-                            isSubmenu
-                            className="w-full"
-                            >
-                                <Settings />
-                                <span>Configurações</span>
-                        </SidebarMenuButton>
-                    </CollapsibleTrigger>
-                </SidebarMenuItem>
+            <Collapsible defaultOpen={isSettingsActive}>
+              <SidebarMenuItem>
+                <CollapsibleTrigger asChild>
+                  <SidebarMenuButton isSubmenu className="w-full">
+                    <Settings />
+                    <span>Configurações</span>
+                  </SidebarMenuButton>
+                </CollapsibleTrigger>
+              </SidebarMenuItem>
 
-                <CollapsibleContent asChild>
-                    <SidebarMenuSub>
-                        {settingsMenuItems.map((item) => (
-                             <SidebarMenuSubItem key={item.href}>
-                                <SidebarMenuSubButton 
-                                  isActive={pathname.startsWith(item.href)}
-                                  onClick={() => router.push(item.href)}
-                                >
-                                    <item.icon/>
-                                    <span>{item.label}</span>
-                                </SidebarMenuSubButton>
-                             </SidebarMenuSubItem>
-                        ))}
-                    </SidebarMenuSub>
-                </CollapsibleContent>
-             </Collapsible>
+              <CollapsibleContent asChild>
+                <SidebarMenuSub>
+                  {settingsMenuItems.map((item) => (
+                    <SidebarMenuSubItem key={item.href}>
+                      <SidebarMenuSubButton
+                        isActive={pathname.startsWith(item.href)}
+                        onClick={() => router.push(item.href)}
+                      >
+                        <item.icon />
+                        <span>{item.label}</span>
+                      </SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+                  ))}
+                </SidebarMenuSub>
+              </CollapsibleContent>
+            </Collapsible>
           </SidebarMenu>
         </SidebarContent>
         <SidebarFooter>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <div className="flex cursor-pointer items-center gap-3 p-2">
-                <Avatar>
-                  <AvatarImage src="https://placehold.co/40x40" />
-                  <AvatarFallback>AD</AvatarFallback>
-                </Avatar>
-                <div className="flex flex-col text-left group-data-[collapsible=icon]:hidden">
-                  <span className="text-sm font-medium">Usuário Admin</span>
-                  <span className="text-xs text-muted-foreground">
-                    admin@worksafe.ai
-                  </span>
-                </div>
-              </div>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="end" forceMount>
-              <DropdownMenuLabel className="font-normal">
-                <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">
-                    Usuário Admin
-                  </p>
-                  <p className="text-xs leading-none text-muted-foreground">
-                    admin@worksafe.ai
-                  </p>
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>Perfil</DropdownMenuItem>
-              <DropdownMenuItem>Configurações</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>Sair</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <UserProfile />
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>
         <header className="flex h-14 items-center gap-4 border-b bg-background/50 backdrop-blur-sm px-4 lg:h-[60px] lg:px-6 sticky top-0 z-30">
           <SidebarTrigger className="md:hidden" />
           <h1 className="text-lg font-semibold md:text-2xl font-headline flex-1">
-            {[...menuItems, ...settingsMenuItems].find((item) => pathname.startsWith(item.href))?.label}
+            {[...menuItems, ...settingsMenuItems].find((item) =>
+              pathname.startsWith(item.href)
+            )?.label}
           </h1>
         </header>
         <main className="flex-1 p-4 md:p-6">{children}</main>
