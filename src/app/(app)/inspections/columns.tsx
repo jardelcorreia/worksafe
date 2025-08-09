@@ -1,14 +1,21 @@
 'use client';
 
+import { useState } from 'react';
 import type { ColumnDef } from '@tanstack/react-table';
-import { MoreHorizontal, ArrowUpDown, Camera } from 'lucide-react';
+import {
+  MoreHorizontal,
+  ArrowUpDown,
+  Camera,
+  FileText,
+  Edit,
+  X,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
@@ -20,6 +27,149 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose
+} from '@/components/ui/dialog';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from '@/components/ui/carousel';
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+
+function DetailsModal({ inspection }: { inspection: SafetyInspection }) {
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+          <FileText className="mr-2 h-4 w-4" />
+          Ver Detalhes
+        </DropdownMenuItem>
+      </DialogTrigger>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Detalhes da Inspeção</DialogTitle>
+        </DialogHeader>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          <div>
+            <strong>Data:</strong>{' '}
+            {new Date(inspection.date).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
+          </div>
+          <div>
+            <strong>Área:</strong> {inspection.area}
+          </div>
+          <div>
+            <strong>Auditor:</strong> {inspection.auditor}
+          </div>
+          <div>
+            <strong>Tipo de Risco:</strong> {inspection.riskType}
+          </div>
+          <div>
+            <strong>Potencial:</strong>{' '}
+            <Badge
+                variant="outline"
+                className={cn({
+                    'border-red-500 text-red-500': inspection.potential === 'Alto',
+                    'border-yellow-500 text-yellow-500': inspection.potential === 'Médio',
+                    'border-green-500 text-green-500': inspection.potential === 'Baixo',
+                })}
+            >
+                {inspection.potential}
+            </Badge>
+          </div>
+          <div>
+            <strong>Status:</strong>{' '}
+            <Badge
+                className={cn({
+                    'bg-green-600': inspection.status === 'Resolvido',
+                    'bg-blue-600': inspection.status === 'Em Andamento',
+                    'bg-gray-600': inspection.status === 'Satisfatório',
+                })}
+            >
+                {inspection.status}
+            </Badge>
+          </div>
+           <div className="col-span-full">
+            <strong>Responsável pela Ação:</strong> {inspection.responsible}
+          </div>
+          <div className="col-span-full">
+            <strong>Prazo Final:</strong>{' '}
+            {new Date(inspection.deadline).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
+          </div>
+          <div className="col-span-full">
+            <strong>Descrição:</strong>
+            <p className="text-muted-foreground">{inspection.description}</p>
+          </div>
+          <div className="col-span-full">
+            <strong>Ação Corretiva:</strong>
+            <p className="text-muted-foreground">{inspection.correctiveAction}</p>
+          </div>
+          {inspection.photos && inspection.photos.length > 0 && (
+            <div className="col-span-full">
+              <strong>Fotos:</strong>
+              <Carousel className="w-full mt-2">
+                <CarouselContent>
+                  {inspection.photos.map((photo, index) => (
+                    <CarouselItem key={index}>
+                      <Image
+                        src={photo}
+                        alt={`Foto da inspeção ${index + 1}`}
+                        width={600}
+                        height={400}
+                        className="rounded-md object-cover w-full aspect-video"
+                      />
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious />
+                <CarouselNext />
+              </Carousel>
+            </div>
+          )}
+        </div>
+        <DialogClose asChild>
+            <Button type="button" variant="outline" className="mt-4">Fechar</Button>
+        </DialogClose>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function ActionsCell({ row }: { row: any }) {
+  const router = useRouter();
+  const inspection = row.original as SafetyInspection;
+
+  const handleEdit = () => {
+    router.push(`/inspections/${inspection.id}/edit`);
+  };
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" className="h-8 w-8 p-0">
+          <span className="sr-only">Abrir menu</span>
+          <MoreHorizontal className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuLabel>Ações</DropdownMenuLabel>
+        <DetailsModal inspection={inspection} />
+        <DropdownMenuItem onClick={handleEdit}>
+          <Edit className="mr-2 h-4 w-4" />
+          Editar
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
 
 export const columns: ColumnDef<SafetyInspection>[] = [
   {
@@ -35,7 +185,10 @@ export const columns: ColumnDef<SafetyInspection>[] = [
         </Button>
       );
     },
-    cell: ({ row }) => new Date(row.getValue('date')).toLocaleDateString('pt-BR', { timeZone: 'UTC' }),
+    cell: ({ row }) =>
+      new Date(row.getValue('date')).toLocaleDateString('pt-BR', {
+        timeZone: 'UTC',
+      }),
   },
   {
     accessorKey: 'area',
@@ -74,23 +227,26 @@ export const columns: ColumnDef<SafetyInspection>[] = [
     accessorKey: 'correctiveAction',
     header: 'Ação Corretiva',
     cell: ({ row }) => {
-        const action = row.getValue('correctiveAction') as string;
-        if (action.length <= 50) {
-            return <span>{action}</span>;
-        }
-        return (
-            <TooltipProvider>
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <span className="cursor-pointer">{`${action.substring(0, 50)}...`}</span>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                        <p className="max-w-xs">{action}</p>
-                    </TooltipContent>
-                </Tooltip>
-            </TooltipProvider>
-        )
-    }
+      const action = row.getValue('correctiveAction') as string;
+      if (action.length <= 50) {
+        return <span>{action}</span>;
+      }
+      return (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="cursor-pointer">{`${action.substring(
+                0,
+                50
+              )}...`}</span>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p className="max-w-xs">{action}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      );
+    },
   },
   {
     accessorKey: 'potential',
@@ -163,30 +319,6 @@ export const columns: ColumnDef<SafetyInspection>[] = [
   },
   {
     id: 'actions',
-    cell: ({ row }) => {
-      const inspection = row.original;
-
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Abrir menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Ações</DropdownMenuLabel>
-            <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(inspection.id)}
-            >
-              Copiar ID da Inspeção
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>Ver detalhes</DropdownMenuItem>
-            <DropdownMenuItem>Editar</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
-    },
+    cell: ActionsCell,
   },
 ];

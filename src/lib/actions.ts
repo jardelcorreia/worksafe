@@ -7,12 +7,14 @@ import {
   collection,
   addDoc,
   getDocs,
+  getDoc,
   deleteDoc,
   doc,
   query,
   orderBy,
   where,
   Timestamp,
+  updateDoc,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { analyzeTrends as analyzeTrendsFlow } from '@/ai/flows/trend-spotter';
@@ -138,6 +140,22 @@ export async function fetchInspections(filters?: DateFilters) {
   return await getInspections(filters);
 }
 
+export async function fetchInspectionById(id: string) {
+    try {
+      const docRef = doc(db, 'inspections', id);
+      const docSnap = await getDoc(docRef);
+  
+      if (docSnap.exists()) {
+        return { id: docSnap.id, ...docSnap.data() } as SafetyInspection;
+      } else {
+        return null;
+      }
+    } catch (error) {
+      console.error('Error fetching inspection by ID:', error);
+      return null;
+    }
+}
+
 export async function addInspection(data: z.infer<typeof inspectionSchema>) {
   try {
     await addDoc(collection(db, 'inspections'), {
@@ -154,6 +172,25 @@ export async function addInspection(data: z.infer<typeof inspectionSchema>) {
     console.error('Error adding inspection:', error);
     return { success: false, message: 'Falha ao adicionar inspeção.' };
   }
+}
+
+export async function updateInspection(id: string, data: z.infer<typeof inspectionSchema>) {
+    try {
+        const docRef = doc(db, 'inspections', id);
+        await updateDoc(docRef, {
+            ...data,
+            date: new Date(data.date).toISOString().split('T')[0],
+            deadline: new Date(data.deadline).toISOString().split('T')[0],
+            photos: data.photos || [],
+        });
+        revalidatePath('/inspections');
+        revalidatePath(`/inspections/${id}/edit`);
+        revalidatePath('/dashboard');
+        return { success: true, message: 'Inspeção atualizada com sucesso.' };
+    } catch (error) {
+        console.error('Error updating inspection:', error);
+        return { success: false, message: 'Falha ao atualizar inspeção.' };
+    }
 }
 
 // Auditor Actions
@@ -242,5 +279,3 @@ export async function deleteRiskType(id: string) {
         return { success: false, message: 'Falha ao excluir tipo de risco.' };
     }
 }
-
-    
