@@ -75,11 +75,11 @@ export default function EditInspectionPage({ params }: { params: { id: string } 
   });
 
   useEffect(() => {
-    async function loadData() {
+    async function loadData(id: string) {
       setIsLoading(true);
       try {
         const [inspectionData, auditorsData, areasData, riskTypesData] = await Promise.all([
-            fetchInspectionById(params.id),
+            fetchInspectionById(id),
             fetchAuditors(),
             fetchAreas(),
             fetchRiskTypes(),
@@ -117,7 +117,9 @@ export default function EditInspectionPage({ params }: { params: { id: string } 
         setIsLoading(false);
       }
     }
-    loadData();
+    if (params.id) {
+        loadData(params.id);
+    }
   }, [params.id, form, toast, router]);
 
   const compressImage = (file: File): Promise<string> => {
@@ -515,3 +517,5 @@ export default function EditInspectionPage({ params }: { params: { id: string } 
     </Card>
   );
 }
+
+    
