@@ -1,7 +1,7 @@
 
 'use server';
 
-import { collection, addDoc, getDocs } from 'firebase/firestore';
+import { collection, addDoc, getDocs, writeBatch } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { revalidatePath } from 'next/cache';
 
@@ -31,6 +31,22 @@ const riskTypesToSeed = [
     'Vergalhão Exposto', 'Via com (Desnível / Obstáculo)', 'Vidro Exposto'
 ];
 
+async function addDocumentsInBatches(newRiskTypes: string[]) {
+    const riskTypesCollection = collection(db, 'riskTypes');
+    const batchSize = 10;
+    
+    for (let i = 0; i < newRiskTypes.length; i += batchSize) {
+        const batch = writeBatch(db);
+        const chunk = newRiskTypes.slice(i, i + batchSize);
+        chunk.forEach(name => {
+            const docRef = collection(db, 'riskTypes').doc();
+            batch.set(docRef, { name });
+        });
+        await batch.commit();
+    }
+}
+
+
 export async function seedRiskTypes() {
   try {
     const riskTypesCollection = collection(db, 'riskTypes');
@@ -45,10 +61,7 @@ export async function seedRiskTypes() {
       return { success: true, count: 0, message: 'Todos os tipos de risco padrão já estavam cadastrados no banco de dados.' };
     }
 
-    const promises = newRiskTypes.map((name) =>
-      addDoc(riskTypesCollection, { name })
-    );
-    await Promise.all(promises);
+    await addDocumentsInBatches(newRiskTypes);
     
     revalidatePath('/admin/risk-types');
     revalidatePath('/incidents/new');
