@@ -1,16 +1,13 @@
 'use client';
 
 import * as React from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import {
   AreaChart,
   FilePlus2,
   List,
-  ShieldCheck,
-  PanelLeft,
-  Users,
   Settings,
+  Users,
   Building,
   AlertTriangleIcon,
 } from 'lucide-react';
@@ -30,7 +27,6 @@ import {
   SidebarMenuSubItem,
 } from '@/components/ui/sidebar';
 import { Logo } from '@/components/icons';
-import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -81,6 +77,7 @@ const settingsMenuItems = [
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
 
   const isSettingsActive = settingsMenuItems.some(item => pathname.startsWith(item.href));
 
@@ -95,15 +92,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             {menuItems.map((item) => (
               <SidebarMenuItem key={item.href}>
                 <SidebarMenuButton
-                  asChild
                   isActive={
                     item.exactMatch ? pathname === item.href : pathname.startsWith(item.href)
                   }
+                  onClick={() => router.push(item.href)}
                 >
-                  <Link href={item.href}>
-                    <item.icon />
-                    <span>{item.label}</span>
-                  </Link>
+                  <item.icon />
+                  <span>{item.label}</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             ))}
@@ -124,11 +119,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     <SidebarMenuSub>
                         {settingsMenuItems.map((item) => (
                              <SidebarMenuSubItem key={item.href}>
-                                <SidebarMenuSubButton asChild isActive={pathname.startsWith(item.href)} tooltip={item.label}>
-                                    <Link href={item.href}>
-                                        <item.icon/>
-                                        <span>{item.label}</span>
-                                    </Link>
+                                <SidebarMenuSubButton 
+                                  isActive={pathname.startsWith(item.href)}
+                                  onClick={() => router.push(item.href)}
+                                >
+                                    <item.icon/>
+                                    <span>{item.label}</span>
                                 </SidebarMenuSubButton>
                              </SidebarMenuSubItem>
                         ))}
