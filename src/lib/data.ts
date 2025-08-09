@@ -11,14 +11,16 @@ export const auditors: Auditor[] = [
 ];
 
 export const areas: Area[] = [
-    { id: '1', name: 'Lingotamento' },
-    { id: '2', name: 'Aciaria' },
-    { id: '3', name: 'GTP' },
-    { id: '4', name: 'Sinterização' },
-    { id: '5', name: 'Pátio de Matéria Prima' },
-    { id: '6', name: 'Alto forno' },
-    { id: '7', name: 'Ponte Rolante' },
-    { id: '8', name: 'NR 12' },
+    { id: '1', name: 'GTP' },
+    { id: '2', name: 'Sinterização' },
+    { id: '3', name: 'Lingotamento' },
+    { id: '4', name: 'Aciaria' },
+    { id: '5', name: 'Pátio' },
+    { id: '6', name: 'Ponte Rolante' },
+    { id: '7', name: 'NR 12' },
+    { id: '8', name: 'Energia' },
+    { id: '9', name: 'Coqueria' },
+    { id: '10', name: 'Alto Forno' },
 ];
 
 export const riskTypes: RiskType[] = [
