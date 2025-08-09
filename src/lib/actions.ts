@@ -15,11 +15,12 @@ import {
 import { db } from '@/lib/firebase';
 import { analyzeTrends as analyzeTrendsFlow } from '@/ai/flows/trend-spotter';
 import { riskForecaster as riskForecasterFlow } from '@/ai/flows/risk-forecaster';
-import type { SafetyIncident, Auditor, Area } from './types';
+import type { SafetyIncident, Auditor, Area, RiskType } from './types';
 import {
   incidentSchema,
   auditorSchema,
   areaSchema,
+  riskTypeSchema,
 } from './types';
 
 // Export types for use in client components
@@ -59,6 +60,16 @@ async function getAreas(): Promise<Area[]> {
     ...doc.data(),
   })) as Area[];
 }
+
+async function getRiskTypes(): Promise<RiskType[]> {
+    const riskTypesCol = query(collection(db, 'riskTypes'), orderBy('name', 'asc'));
+    const riskTypeSnapshot = await getDocs(riskTypesCol);
+    return riskTypeSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+    })) as RiskType[];
+}
+
 
 // AI Actions
 export async function analyzeTrends() {
@@ -178,4 +189,33 @@ export async function deleteArea(id: string) {
     console.error('Error deleting area:', error);
     return { success: false, message: 'Falha ao excluir área.' };
   }
+}
+
+// RiskType Actions
+export async function fetchRiskTypes() {
+    return await getRiskTypes();
+}
+
+export async function addRiskType(data: z.infer<typeof riskTypeSchema>) {
+    try {
+        await addDoc(collection(db, 'riskTypes'), data);
+        revalidatePath('/admin/risk-types');
+        revalidatePath('/incidents/new');
+        return { success: true, message: 'Tipo de risco adicionado com sucesso.' };
+    } catch (error) {
+        console.error('Error adding risk type:', error);
+        return { success: false, message: 'Falha ao adicionar tipo de risco.' };
+    }
+}
+
+export async function deleteRiskType(id: string) {
+    try {
+        await deleteDoc(doc(db, 'riskTypes', id));
+        revalidatePath('/admin/risk-types');
+        revalidatePath('/incidents/new');
+        return { success: true, message: 'Tipo de risco excluído com sucesso.' };
+    } catch (error) {
+        console.error('Error deleting risk type:', error);
+        return { success: false, message: 'Falha ao excluir tipo de risco.' };
+    }
 }

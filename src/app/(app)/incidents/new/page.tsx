@@ -37,41 +37,15 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { addIncident, fetchAuditors, fetchAreas } from '@/lib/actions';
+import { addIncident, fetchAuditors, fetchAreas, fetchRiskTypes } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
-import { PotentialLevels, StatusLevels, incidentSchema, type Auditor, type Area } from '@/lib/types';
+import { PotentialLevels, StatusLevels, incidentSchema, type Auditor, type Area, type RiskType } from '@/lib/types';
 
 
 const MAX_PHOTOS = 5;
 const MAX_FILE_SIZE_MB = 2;
 const COMPRESSION_QUALITY = 0.7;
 const MAX_DIMENSION = 1024;
-
-const riskTypes = [
-    'Acesso', 'Alerta Sonoro / Alarme Sonoro', 'Animais Peçonhentos', 'Atropelamento',
-    'Ausência de Biombo', 'Ausência de Botão de Emergência', 'Ausência de Chuveiro Lava Olhos',
-    'Ausência de EPC (Contenção, Kit de Mitigação, etc.)', 'Ausência de FISPQ',
-    'Ausência de Gaiola de Produtos Químicos', 'Ausência de Quebra Quina', 'Ausência de Sinaleiro',
-    'Ausência de Vigia', 'Bancada Inadequada', 'Barba', 'Buraco na Área de Passagem de Pedestres',
-    'Cabo Guia', 'Caixa de Bloqueio', 'Calço de Pneus', 'Chão Escorregadio',
-    'Cinta Danificada / Inadequada / sem Identificação', 'Cinto de Segurança Avariado',
-    'Colaborador desconhece os riscos', 'Colaborador sem EPI', 'Condutor sem Habilitação',
-    'Contaminação (Água, Solo, Ar)', 'Contato com Material Quente', 'Controle de Entrada e Saída',
-    'Descarte Incorreto', 'Detector de Gás (Filtro Vencido / Desligado / Ausente)', 'Documentação',
-    'Entrada Inadequada', 'Equipamento Inadequado', 'Espaço Confinado',
-    'Estropo Danificado / sem Identificação', 'Estrutura Inadequada', 'Excesso de Material',
-    'Exposição (Altas Temperaturas / Centelhas / Produtos Químicos)', 'Extintor (Ausente / Falta)',
-    'Falta de (Ancoragem / Aterramento / Bloqueio / Cadeado / Capacitação / Check List / Cinto de Segurança / Cobertura / Coleta Seletiva / Data / Assinatura / Detector de Gás / Documentação / EPC / EPI / Identificação / Identificação de Risco / Isolamento / Liberação / Linha de Vida / Medidas de Segurança / Ponto de Encontro / Rota de Fuga / Treinamento)',
-    'Fio Desencapado', 'Guarda Corpo (Ausente / Inadequado)', 'Iluminação Inadequada',
-    'Isolamento (Caído / Deficiente / Fora do Padrão)', 'Manilha Inadequada ou sem Identificação',
-    'Mapa de Bloqueio', 'Materiais Espalhados / em Excesso', 'Material Inflamável/Explosivo Próximo',
-    'Moitão Danificado / sem Identificação', 'Olhal Danificado / sem Identificação',
-    'Oxicorte fora do padrão', 'Patolamento Inadequado', 'Piso Irregular',
-    'Placa de Liberação / Identificação', 'Plataforma com Vão Aberto', 'Pneu Avariado',
-    'Pranchão (Inadequado / Danificado / Irregular)', 'Quina Viva', 'Risco de Choque Elétrico',
-    'Talha Danificada / sem Identificação', 'Trava de Segurança', 'Vazamento (Produto Químico / Óleo)',
-    'Vergalhão Exposto', 'Via com (Desnível / Obstáculo)', 'Vidro Exposto'
-].sort();
 
 export default function NewIncidentPage() {
   const router = useRouter();
@@ -80,18 +54,21 @@ export default function NewIncidentPage() {
   const [photoFiles, setPhotoFiles] = useState<File[]>([]);
   const [auditors, setAuditors] = useState<Auditor[]>([]);
   const [areas, setAreas] = useState<Area[]>([]);
+  const [riskTypes, setRiskTypes] = useState<RiskType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function loadData() {
       setIsLoading(true);
       try {
-        const [auditorsData, areasData] = await Promise.all([
+        const [auditorsData, areasData, riskTypesData] = await Promise.all([
           fetchAuditors(),
           fetchAreas(),
+          fetchRiskTypes(),
         ]);
         setAuditors(auditorsData);
         setAreas(areasData);
+        setRiskTypes(riskTypesData);
       } catch (error) {
         toast({
           title: 'Erro ao carregar dados',
@@ -335,7 +312,7 @@ export default function NewIncidentPage() {
                       <SelectContent>
                         <ScrollArea className="h-72">
                         {riskTypes.map((riskType) => (
-                           <SelectItem key={riskType} value={riskType}>{riskType}</SelectItem>
+                           <SelectItem key={riskType.id} value={riskType.name}>{riskType.name}</SelectItem>
                         ))}
                         </ScrollArea>
                       </SelectContent>
