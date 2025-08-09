@@ -28,12 +28,12 @@ export type SafetyInspection = {
   correctiveAction: string;
   responsible: string;
   deadline: string;
-  status: 'Resolvido' | 'Em Andamento' | 'Satisfatório';
+  status: 'Resolvido' | 'Em Andamento';
   photos?: string[];
 };
 
 export const PotentialLevels = ['Alto', 'Médio', 'Baixo', 'Sem Desvio'] as const;
-export const StatusLevels = ['Resolvido', 'Em Andamento', 'Satisfatório'] as const;
+export const StatusLevels = ['Resolvido', 'Em Andamento'] as const;
 
 export const inspectionSchema = z.object({
   area: z.string().min(1, 'Área é obrigatória.'),

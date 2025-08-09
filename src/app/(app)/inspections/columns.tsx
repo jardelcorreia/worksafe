@@ -82,23 +82,15 @@ function DetailsModal({ inspection, children }: { inspection: SafetyInspection, 
             </Badge>
           </div>
           <div>
-            <strong>Status:</strong>{' '}
+            <strong>Status da Ação Corretiva:</strong>{' '}
             <Badge
                 className={cn({
                     'bg-green-600': inspection.status === 'Resolvido',
                     'bg-blue-600': inspection.status === 'Em Andamento',
-                    'bg-gray-600': inspection.status === 'Satisfatório',
                 })}
             >
                 {inspection.status}
             </Badge>
-          </div>
-           <div className="col-span-full">
-            <strong>Responsável pela Ação Corretiva:</strong> {inspection.responsible}
-          </div>
-          <div className="col-span-full">
-            <strong>Prazo Final:</strong>{' '}
-            {new Date(inspection.deadline).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
           </div>
           <div className="col-span-full">
             <strong>Descrição:</strong>
@@ -107,6 +99,13 @@ function DetailsModal({ inspection, children }: { inspection: SafetyInspection, 
           <div className="col-span-full">
             <strong>Ação Corretiva:</strong>
             <p className="text-muted-foreground">{inspection.correctiveAction}</p>
+          </div>
+           <div className="col-span-full">
+            <strong>Responsável pela Ação Corretiva:</strong> {inspection.responsible}
+          </div>
+          <div className="col-span-full">
+            <strong>Prazo Final:</strong>{' '}
+            {new Date(inspection.deadline).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
           </div>
           {inspection.photos && inspection.photos.length > 0 && (
             <div className="col-span-full">
@@ -273,7 +272,7 @@ export const columns: ColumnDef<SafetyInspection>[] = [
   },
   {
     accessorKey: 'status',
-    header: 'Status',
+    header: 'Status da Ação Corretiva',
     cell: ({ row }) => {
       const status = row.getValue('status') as string;
       return (
@@ -281,7 +280,6 @@ export const columns: ColumnDef<SafetyInspection>[] = [
           className={cn({
             'bg-green-600': status === 'Resolvido',
             'bg-blue-600': status === 'Em Andamento',
-            'bg-gray-600': status === 'Satisfatório',
           })}
         >
           {status}

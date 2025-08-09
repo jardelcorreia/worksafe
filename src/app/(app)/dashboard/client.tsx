@@ -92,7 +92,7 @@ export function DashboardClient() {
 
   useEffect(() => {
     getAIFeatures(date);
-  }, []);
+  }, [date]);
 
   const totalInspections = inspections.length;
   const resolvedInspections = inspections.filter(
@@ -340,5 +340,3 @@ export function DashboardClient() {
     </div>
   );
 }
-
-    
