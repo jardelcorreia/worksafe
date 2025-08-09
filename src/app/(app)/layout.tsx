@@ -110,7 +110,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             ))}
              <Collapsible defaultOpen={isSettingsActive}>
                 <SidebarMenuItem>
-                    <CollapsibleTrigger className="w-full">
+                    <CollapsibleTrigger asChild>
                         <SidebarMenuButton
                             isSubmenu
                             className="w-full"
