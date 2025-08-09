@@ -384,40 +384,6 @@ export default function NewIncidentPage() {
                   </FormItem>
                 )}
               />
-              <div className="lg:col-span-3">
-                <FormLabel>Fotos (até {MAX_PHOTOS})</FormLabel>
-                <FormControl>
-                    <div className="mt-2 flex items-center justify-center w-full">
-                        <label htmlFor="dropzone-file" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-muted hover:bg-background">
-                            <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                <Upload className="w-8 h-8 mb-2 text-muted-foreground" />
-                                <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Clique para enviar</span> ou arraste e solte</p>
-                                <p className="text-xs text-muted-foreground">PNG, JPG ou GIF (MAX. {MAX_FILE_SIZE_MB}MB por foto)</p>
-                            </div>
-                            <input id="dropzone-file" type="file" className="hidden" multiple accept="image/*" onChange={handlePhotoChange} disabled={photoPreviews.length >= MAX_PHOTOS} />
-                        </label>
-                    </div>
-                </FormControl>
-                {photoPreviews.length > 0 && (
-                    <div className="mt-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                        {photoPreviews.map((src, index) => (
-                            <div key={index} className="relative group">
-                                <Image src={src} alt={`Preview ${index + 1}`} width={150} height={150} className="rounded-md object-cover w-full aspect-square" />
-                                <Button
-                                    type="button"
-                                    variant="destructive"
-                                    size="icon"
-                                    className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100"
-                                    onClick={() => handleRemovePhoto(index)}
-                                >
-                                    <X className="h-4 w-4" />
-                                </Button>
-                            </div>
-                        ))}
-                    </div>
-                )}
-                 <FormMessage />
-              </div>
               <FormField
                 control={form.control}
                 name="deadline"
@@ -479,6 +445,40 @@ export default function NewIncidentPage() {
                   </FormItem>
                 )}
               />
+              <div className="lg:col-span-3">
+                <FormLabel>Fotos (até {MAX_PHOTOS})</FormLabel>
+                <FormControl>
+                    <div className="mt-2 flex items-center justify-center w-full">
+                        <label htmlFor="dropzone-file" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-muted hover:bg-background">
+                            <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                <Upload className="w-8 h-8 mb-2 text-muted-foreground" />
+                                <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Clique para enviar</span> ou arraste e solte</p>
+                                <p className="text-xs text-muted-foreground">PNG, JPG ou GIF (MAX. {MAX_FILE_SIZE_MB}MB por foto)</p>
+                            </div>
+                            <input id="dropzone-file" type="file" className="hidden" multiple accept="image/*" onChange={handlePhotoChange} disabled={photoPreviews.length >= MAX_PHOTOS} />
+                        </label>
+                    </div>
+                </FormControl>
+                {photoPreviews.length > 0 && (
+                    <div className="mt-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                        {photoPreviews.map((src, index) => (
+                            <div key={index} className="relative group">
+                                <Image src={src} alt={`Preview ${index + 1}`} width={150} height={150} className="rounded-md object-cover w-full aspect-square" />
+                                <Button
+                                    type="button"
+                                    variant="destructive"
+                                    size="icon"
+                                    className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100"
+                                    onClick={() => handleRemovePhoto(index)}
+                                >
+                                    <X className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        ))}
+                    </div>
+                )}
+                 <FormMessage />
+              </div>
             </div>
             <div className="flex justify-end">
               <Button type="submit" disabled={form.formState.isSubmitting || isLoading}>
