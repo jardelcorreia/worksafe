@@ -362,19 +362,6 @@ export default function EditInspectionPage({ params }: { params: { id: string } 
                   </FormItem>
                 )}
               />
-               <FormField
-                control={form.control}
-                name="responsible"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Responsável pela Ação</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ex: Equipe de Manutenção" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
               <FormField
                 control={form.control}
                 name="description"
@@ -402,6 +389,19 @@ export default function EditInspectionPage({ params }: { params: { id: string } 
                         placeholder="Descreva a ação corretiva tomada..."
                         {...field}
                       />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+               <FormField
+                control={form.control}
+                name="responsible"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Responsável pela Ação Corretiva</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ex: Equipe de Manutenção" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -451,7 +451,7 @@ export default function EditInspectionPage({ params }: { params: { id: string } 
                 name="status"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Status da Ação</FormLabel>
+                    <FormLabel>Status da Ação Corretiva</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -517,5 +517,3 @@ export default function EditInspectionPage({ params }: { params: { id: string } 
     </Card>
   );
 }
-
-    

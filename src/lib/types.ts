@@ -43,7 +43,7 @@ export const inspectionSchema = z.object({
   potential: z.enum(PotentialLevels),
   description: z.string().min(1, 'Descrição é obrigatória.'),
   correctiveAction: z.string().min(1, 'Ação corretiva é obrigatória.'),
-  responsible: z.string().min(1, 'Responsável/Ação é obrigatório(a).'),
+  responsible: z.string().min(1, 'Responsável pela ação corretiva é obrigatório(a).'),
   deadline: z.string(),
   status: z.enum(StatusLevels),
   photos: z.array(z.string()).optional(),

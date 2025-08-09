@@ -6,10 +6,8 @@ import type { ColumnDef } from '@tanstack/react-table';
 import {
   MoreHorizontal,
   ArrowUpDown,
-  Camera,
   FileText,
   Edit,
-  X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -96,7 +94,7 @@ function DetailsModal({ inspection, children }: { inspection: SafetyInspection, 
             </Badge>
           </div>
            <div className="col-span-full">
-            <strong>Responsável pela Ação:</strong> {inspection.responsible}
+            <strong>Responsável pela Ação Corretiva:</strong> {inspection.responsible}
           </div>
           <div className="col-span-full">
             <strong>Prazo Final:</strong>{' '}
