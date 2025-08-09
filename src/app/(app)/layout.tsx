@@ -117,10 +117,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                             className="w-full"
                             tooltip="Settings"
                             >
-                                <>
-                                 <Settings />
-                                 <span>Settings</span>
-                                </>
+                                <Settings />
+                                <span>Settings</span>
                         </SidebarMenuButton>
                     </CollapsibleTrigger>
                 </SidebarMenuItem>
