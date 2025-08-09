@@ -99,7 +99,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   isActive={
                     item.exactMatch ? pathname === item.href : pathname.startsWith(item.href)
                   }
-                  tooltip={item.label}
                 >
                   <Link href={item.href}>
                     <item.icon />
