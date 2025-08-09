@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -307,18 +308,9 @@ export const columns: ColumnDef<SafetyInspection>[] = [
         if (photos && photos.length > 0) {
           return (
             <DetailsModal inspection={inspection}>
-                <TooltipProvider>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                             <button className="flex items-center justify-center">
-                                <Camera className="h-5 w-5 text-muted-foreground" />
-                             </button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                            <p>Ver {photos.length} foto(s)</p>
-                        </TooltipContent>
-                    </Tooltip>
-                </TooltipProvider>
+                <button className="flex items-center justify-center p-2 rounded-md hover:bg-muted">
+                    <Camera className="h-5 w-5 text-muted-foreground" />
+                </button>
             </DetailsModal>
           );
         }
