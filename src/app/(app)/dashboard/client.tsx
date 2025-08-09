@@ -9,6 +9,8 @@ import {
   ListChecks,
   Loader2,
   Info,
+  ShieldAlert,
+  Clock,
 } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip } from 'recharts';
 import {
@@ -69,6 +71,12 @@ export function DashboardClient() {
   const resolvedIncidents = incidents.filter(
     (i) => i.status === 'Resolvido'
   ).length;
+  const pendingIncidents = incidents.filter(
+    (i) => i.status === 'Em Andamento'
+  ).length;
+  const highPotentialIncidents = incidents.filter(
+    (i) => i.potential === 'Alto'
+  ).length;
 
   const areaChartData = useMemo(
     () => trends?.mostFrequentAreas || [],
@@ -107,6 +115,30 @@ export function DashboardClient() {
             <div className="text-2xl font-bold">{resolvedIncidents}</div>
             <p className="text-xs text-muted-foreground">
               {totalIncidents > 0 ? ((resolvedIncidents / totalIncidents) * 100).toFixed(1) : 0}% resolvidos
+            </p>
+          </CardContent>
+        </Card>
+         <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Incidentes Pendentes</CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{pendingIncidents}</div>
+             <p className="text-xs text-muted-foreground">
+              Incidentes com status "Em Andamento"
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Alto Potencial</CardTitle>
+            <ShieldAlert className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{highPotentialIncidents}</div>
+            <p className="text-xs text-muted-foreground">
+              Incidentes classificados como "Alto"
             </p>
           </CardContent>
         </Card>
@@ -237,5 +269,3 @@ export function DashboardClient() {
     </div>
   );
 }
-
-    
