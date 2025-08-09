@@ -77,7 +77,7 @@ export function DataTable<TData, TValue>({
     <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
       <div className="flex items-center p-4 gap-4">
         <Input
-          placeholder="Filter by risk type..."
+          placeholder="Filtrar por tipo de risco..."
           value={
             (table.getColumn('riskType')?.getFilterValue() as string) ?? ''
           }
@@ -92,10 +92,10 @@ export function DataTable<TData, TValue>({
           }
         >
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by Potential" />
+            <SelectValue placeholder="Filtrar por Potencial" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Potentials</SelectItem>
+            <SelectItem value="all">Todos os Potenciais</SelectItem>
             {PotentialLevels.map((level) => (
               <SelectItem key={level} value={level}>
                 {level}
@@ -109,10 +109,10 @@ export function DataTable<TData, TValue>({
           }
         >
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by Status" />
+            <SelectValue placeholder="Filtrar por Status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
+            <SelectItem value="all">Todos os Status</SelectItem>
             {StatusLevels.map((level) => (
               <SelectItem key={level} value={level}>
                 {level}
@@ -124,7 +124,7 @@ export function DataTable<TData, TValue>({
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">
-              Columns <ChevronDown className="ml-2 h-4 w-4" />
+              Colunas <ChevronDown className="ml-2 h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -141,7 +141,7 @@ export function DataTable<TData, TValue>({
                       column.toggleVisibility(!!value)
                     }
                   >
-                    {column.id}
+                    {column.id === 'riskType' ? 'Tipo de Risco' : column.id}
                   </DropdownMenuCheckboxItem>
                 );
               })}
@@ -191,7 +191,7 @@ export function DataTable<TData, TValue>({
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  No results.
+                  Nenhum resultado.
                 </TableCell>
               </TableRow>
             )}
@@ -205,7 +205,7 @@ export function DataTable<TData, TValue>({
           onClick={() => table.previousPage()}
           disabled={!table.getCanPreviousPage()}
         >
-          Previous
+          Anterior
         </Button>
         <Button
           variant="outline"
@@ -213,7 +213,7 @@ export function DataTable<TData, TValue>({
           onClick={() => table.nextPage()}
           disabled={!table.getCanNextPage()}
         >
-          Next
+          Próximo
         </Button>
       </div>
     </div>

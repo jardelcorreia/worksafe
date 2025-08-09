@@ -34,7 +34,7 @@ export async function riskForecaster(identifiedTrends: string) {
     const historicalData = incidents
       .map(
         (i) =>
-          `On ${i.date} in ${i.area}, an incident of type '${i.riskType}' with ${i.potential} potential occurred. Description: ${i.description}`
+          `Em ${i.date} em ${i.area}, ocorreu um incidente do tipo '${i.riskType}' com potencial ${i.potential}. Descrição: ${i.description}`
       )
       .join('\n');
 
@@ -63,7 +63,7 @@ export async function addIncident(data: z.infer<typeof incidentSchema>) {
   incidents.unshift(newIncident);
   revalidatePath('/incidents');
   revalidatePath('/dashboard');
-  return { success: true, message: 'Incident added successfully.' };
+  return { success: true, message: 'Incidente adicionado com sucesso.' };
 }
 
 // Auditor Actions
@@ -75,7 +75,7 @@ export async function addAuditor(data: z.infer<typeof auditorSchema>) {
   auditors.push(newAuditor);
   revalidatePath('/admin/auditors');
   revalidatePath('/incidents/new');
-  return { success: true, message: 'Auditor added successfully.' };
+  return { success: true, message: 'Auditor adicionado com sucesso.' };
 }
 
 export async function deleteAuditor(id: string) {
@@ -84,9 +84,9 @@ export async function deleteAuditor(id: string) {
     auditors.splice(index, 1);
     revalidatePath('/admin/auditors');
     revalidatePath('/incidents/new');
-    return { success: true, message: 'Auditor deleted successfully.' };
+    return { success: true, message: 'Auditor excluído com sucesso.' };
   }
-  return { success: false, message: 'Auditor not found.' };
+  return { success: false, message: 'Auditor não encontrado.' };
 }
 
 // Area Actions
@@ -98,7 +98,7 @@ export async function addArea(data: z.infer<typeof areaSchema>) {
     areas.push(newArea);
     revalidatePath('/admin/areas');
     revalidatePath('/incidents/new');
-    return { success: true, message: 'Area added successfully.' };
+    return { success: true, message: 'Área adicionada com sucesso.' };
   }
   
   export async function deleteArea(id: string) {
@@ -107,9 +107,9 @@ export async function addArea(data: z.infer<typeof areaSchema>) {
       areas.splice(index, 1);
       revalidatePath('/admin/areas');
       revalidatePath('/incidents/new');
-      return { success: true, message: 'Area deleted successfully.' };
+      return { success: true, message: 'Área excluída com sucesso.' };
     }
-    return { success: false, message: 'Area not found.' };
+    return { success: false, message: 'Área não encontrada.' };
   }
 
 // Risk Type Actions
@@ -121,7 +121,7 @@ export async function addRiskType(data: z.infer<typeof riskTypeSchema>) {
     riskTypes.push(newRiskType);
     revalidatePath('/admin/risk-types');
     revalidatePath('/incidents/new');
-    return { success: true, message: 'Risk Type added successfully.' };
+    return { success: true, message: 'Tipo de Risco adicionado com sucesso.' };
 }
 
 export async function deleteRiskType(id: string) {
@@ -130,7 +130,7 @@ export async function deleteRiskType(id: string) {
         riskTypes.splice(index, 1);
         revalidatePath('/admin/risk-types');
         revalidatePath('/incidents/new');
-        return { success: true, message: 'Risk Type deleted successfully.' };
+        return { success: true, message: 'Tipo de Risco excluído com sucesso.' };
     }
-    return { success: false, message: 'Risk Type not found.' };
+    return { success: false, message: 'Tipo de Risco não encontrado.' };
 }

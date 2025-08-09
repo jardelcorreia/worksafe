@@ -24,33 +24,33 @@ export const columns: ColumnDef<SafetyIncident>[] = [
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
         >
-          Date
+          Data
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
     },
-    cell: ({ row }) => new Date(row.getValue('date')).toLocaleDateString(),
+    cell: ({ row }) => new Date(row.getValue('date')).toLocaleDateString('pt-BR', { timeZone: 'UTC' }),
   },
   {
     accessorKey: 'area',
-    header: 'Area',
+    header: 'Área',
   },
   {
     accessorKey: 'riskType',
-    header: 'Risk Type',
+    header: 'Tipo de Risco',
   },
   {
     accessorKey: 'potential',
-    header: 'Potential',
+    header: 'Potencial',
     cell: ({ row }) => {
       const potential = row.getValue('potential') as string;
       return (
         <Badge
           variant="outline"
           className={cn({
-            'border-red-500 text-red-500': potential === 'High',
-            'border-yellow-500 text-yellow-500': potential === 'Medium',
-            'border-green-500 text-green-500': potential === 'Low',
+            'border-red-500 text-red-500': potential === 'Alto',
+            'border-yellow-500 text-yellow-500': potential === 'Médio',
+            'border-green-500 text-green-500': potential === 'Baixo',
           })}
         >
           {potential}
@@ -69,9 +69,9 @@ export const columns: ColumnDef<SafetyIncident>[] = [
       return (
         <Badge
           className={cn({
-            'bg-green-600': status === 'Resolved',
-            'bg-blue-600': status === 'In Progress',
-            'bg-gray-600': status === 'Satisfactory',
+            'bg-green-600': status === 'Resolvido',
+            'bg-blue-600': status === 'Em Andamento',
+            'bg-gray-600': status === 'Satisfatório',
           })}
         >
           {status}
@@ -95,20 +95,20 @@ export const columns: ColumnDef<SafetyIncident>[] = [
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
+              <span className="sr-only">Abrir menu</span>
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuLabel>Ações</DropdownMenuLabel>
             <DropdownMenuItem
               onClick={() => navigator.clipboard.writeText(incident.id)}
             >
-              Copy Incident ID
+              Copiar ID do Incidente
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>View details</DropdownMenuItem>
-            <DropdownMenuItem>Edit</DropdownMenuItem>
+            <DropdownMenuItem>Ver detalhes</DropdownMenuItem>
+            <DropdownMenuItem>Editar</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       );

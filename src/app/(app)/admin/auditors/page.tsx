@@ -49,15 +49,15 @@ export default function AuditorsPage() {
     const result = await addAuditor(newAuditor);
     if (!result.success) {
       toast({
-        title: 'Error',
-        description: 'Failed to add auditor.',
+        title: 'Erro',
+        description: 'Falha ao adicionar auditor.',
         variant: 'destructive',
       });
       setAuditors((prev) => prev.filter((a) => a.id !== newAuditor.id));
     } else {
         toast({
-            title: 'Success',
-            description: 'Auditor added successfully.',
+            title: 'Sucesso',
+            description: 'Auditor adicionado com sucesso.',
         });
     }
   }
@@ -68,15 +68,15 @@ export default function AuditorsPage() {
     const result = await deleteAuditor(id);
     if (!result.success) {
       toast({
-        title: 'Error',
-        description: 'Failed to delete auditor.',
+        title: 'Erro',
+        description: 'Falha ao excluir auditor.',
         variant: 'destructive',
       });
       setAuditors(originalAuditors);
     } else {
       toast({
-        title: 'Success',
-        description: 'Auditor deleted successfully.',
+        title: 'Sucesso',
+        description: 'Auditor excluído com sucesso.',
       });
     }
   }
@@ -84,7 +84,7 @@ export default function AuditorsPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Manage Auditors</CardTitle>
+        <CardTitle>Gerenciar Auditores</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid gap-6">
@@ -98,9 +98,9 @@ export default function AuditorsPage() {
                 name="name"
                 render={({ field }) => (
                   <FormItem className="flex-grow">
-                    <FormLabel>Auditor Name</FormLabel>
+                    <FormLabel>Nome do Auditor</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g. Jane Smith" {...field} />
+                      <Input placeholder="Ex: João da Silva" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -108,7 +108,7 @@ export default function AuditorsPage() {
               />
               <Button type="submit" disabled={form.formState.isSubmitting}>
                 <PlusCircle className="mr-2 h-4 w-4" />
-                {form.formState.isSubmitting ? 'Adding...' : 'Add Auditor'}
+                {form.formState.isSubmitting ? 'Adicionando...' : 'Adicionar Auditor'}
               </Button>
             </form>
           </Form>
@@ -117,8 +117,8 @@ export default function AuditorsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>Nome</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

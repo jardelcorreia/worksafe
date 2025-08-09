@@ -22,36 +22,36 @@ export type SafetyIncident = {
   auditor: string;
   date: string;
   riskType: string;
-  potential: 'High' | 'Medium' | 'Low' | 'No Deviation';
+  potential: 'Alto' | 'Médio' | 'Baixo' | 'Sem Desvio';
   description: string;
   responsible: string;
   deadline: string;
-  status: 'Resolved' | 'In Progress' | 'Satisfactory';
+  status: 'Resolvido' | 'Em Andamento' | 'Satisfatório';
 };
 
-export const PotentialLevels = ['High', 'Medium', 'Low', 'No Deviation'] as const;
-export const StatusLevels = ['Resolved', 'In Progress', 'Satisfactory'] as const;
+export const PotentialLevels = ['Alto', 'Médio', 'Baixo', 'Sem Desvio'] as const;
+export const StatusLevels = ['Resolvido', 'Em Andamento', 'Satisfatório'] as const;
 
 export const incidentSchema = z.object({
-  area: z.string().min(1, 'Area is required.'),
-  auditor: z.string().min(1, 'Auditor is required.'),
+  area: z.string().min(1, 'Área é obrigatória.'),
+  auditor: z.string().min(1, 'Auditor é obrigatório.'),
   date: z.string(),
-  riskType: z.string().min(1, 'Risk Type is required.'),
-  potential: z.enum(['High', 'Medium', 'Low', 'No Deviation']),
-  description: z.string().min(1, 'Description is required.'),
-  responsible: z.string().min(1, 'Responsible person/action is required.'),
+  riskType: z.string().min(1, 'Tipo de Risco é obrigatório.'),
+  potential: z.enum(['Alto', 'Médio', 'Baixo', 'Sem Desvio']),
+  description: z.string().min(1, 'Descrição é obrigatória.'),
+  responsible: z.string().min(1, 'Responsável/Ação é obrigatório(a).'),
   deadline: z.string(),
-  status: z.enum(['Resolved', 'In Progress', 'Satisfactory']),
+  status: z.enum(['Resolvido', 'Em Andamento', 'Satisfatório']),
 });
 
 export const auditorSchema = z.object({
-  name: z.string().min(1, 'Auditor name is required.'),
+  name: z.string().min(1, 'Nome do auditor é obrigatório.'),
 });
 
 export const areaSchema = z.object({
-    name: z.string().min(1, 'Area name is required.'),
+    name: z.string().min(1, 'Nome da área é obrigatório.'),
 });
 
 export const riskTypeSchema = z.object({
-    name: z.string().min(1, 'Risk type name is required.'),
+    name: z.string().min(1, 'Nome do tipo de risco é obrigatório.'),
 });

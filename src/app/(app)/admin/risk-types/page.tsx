@@ -48,15 +48,15 @@ export default function RiskTypesPage() {
     const result = await addRiskType(newRiskType);
     if (!result.success) {
       toast({
-        title: 'Error',
-        description: 'Failed to add risk type.',
+        title: 'Erro',
+        description: 'Falha ao adicionar tipo de risco.',
         variant: 'destructive',
       });
       setRiskTypes((prev) => prev.filter((rt) => rt.id !== newRiskType.id));
     } else {
         toast({
-            title: 'Success',
-            description: 'Risk Type added successfully.',
+            title: 'Sucesso',
+            description: 'Tipo de Risco adicionado com sucesso.',
         });
     }
   }
@@ -67,15 +67,15 @@ export default function RiskTypesPage() {
     const result = await deleteRiskType(id);
     if (!result.success) {
       toast({
-        title: 'Error',
-        description: 'Failed to delete risk type.',
+        title: 'Erro',
+        description: 'Falha ao excluir tipo de risco.',
         variant: 'destructive',
       });
       setRiskTypes(originalRiskTypes);
     } else {
       toast({
-        title: 'Success',
-        description: 'Risk Type deleted successfully.',
+        title: 'Sucesso',
+        description: 'Tipo de Risco excluído com sucesso.',
       });
     }
   }
@@ -83,7 +83,7 @@ export default function RiskTypesPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Manage Risk Types</CardTitle>
+        <CardTitle>Gerenciar Tipos de Risco</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid gap-6">
@@ -97,9 +97,9 @@ export default function RiskTypesPage() {
                 name="name"
                 render={({ field }) => (
                   <FormItem className="flex-grow">
-                    <FormLabel>Risk Type Name</FormLabel>
+                    <FormLabel>Nome do Tipo de Risco</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g. Chemical Spill" {...field} />
+                      <Input placeholder="Ex: Vazamento Químico" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -107,7 +107,7 @@ export default function RiskTypesPage() {
               />
               <Button type="submit" disabled={form.formState.isSubmitting}>
                 <PlusCircle className="mr-2 h-4 w-4" />
-                {form.formState.isSubmitting ? 'Adding...' : 'Add Risk Type'}
+                {form.formState.isSubmitting ? 'Adicionando...' : 'Adicionar Tipo de Risco'}
               </Button>
             </form>
           </Form>
@@ -116,8 +116,8 @@ export default function RiskTypesPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>Nome</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

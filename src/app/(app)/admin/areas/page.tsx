@@ -48,15 +48,15 @@ export default function AreasPage() {
     const result = await addArea(newArea);
     if (!result.success) {
       toast({
-        title: 'Error',
-        description: 'Failed to add area.',
+        title: 'Erro',
+        description: 'Falha ao adicionar área.',
         variant: 'destructive',
       });
       setAreas((prev) => prev.filter((a) => a.id !== newArea.id));
     } else {
         toast({
-            title: 'Success',
-            description: 'Area added successfully.',
+            title: 'Sucesso',
+            description: 'Área adicionada com sucesso.',
         });
     }
   }
@@ -67,15 +67,15 @@ export default function AreasPage() {
     const result = await deleteArea(id);
     if (!result.success) {
       toast({
-        title: 'Error',
-        description: 'Failed to delete area.',
+        title: 'Erro',
+        description: 'Falha ao excluir área.',
         variant: 'destructive',
       });
       setAreas(originalAreas);
     } else {
       toast({
-        title: 'Success',
-        description: 'Area deleted successfully.',
+        title: 'Sucesso',
+        description: 'Área excluída com sucesso.',
       });
     }
   }
@@ -83,7 +83,7 @@ export default function AreasPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Manage Areas</CardTitle>
+        <CardTitle>Gerenciar Áreas</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid gap-6">
@@ -97,9 +97,9 @@ export default function AreasPage() {
                 name="name"
                 render={({ field }) => (
                   <FormItem className="flex-grow">
-                    <FormLabel>Area Name</FormLabel>
+                    <FormLabel>Nome da Área</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g. Lingotamento" {...field} />
+                      <Input placeholder="Ex: Lingotamento" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -107,7 +107,7 @@ export default function AreasPage() {
               />
               <Button type="submit" disabled={form.formState.isSubmitting}>
                 <PlusCircle className="mr-2 h-4 w-4" />
-                {form.formState.isSubmitting ? 'Adding...' : 'Add Area'}
+                {form.formState.isSubmitting ? 'Adicionando...' : 'Adicionar Área'}
               </Button>
             </form>
           </Form>
@@ -116,8 +116,8 @@ export default function AreasPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>Nome</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -51,13 +50,13 @@ const menuItems = [
   },
   {
     href: '/incidents',
-    label: 'Incidents',
+    label: 'Incidentes',
     icon: List,
     exactMatch: true,
   },
   {
     href: '/incidents/new',
-    label: 'New Incident',
+    label: 'Novo Incidente',
     icon: FilePlus2,
   },
 ];
@@ -65,17 +64,17 @@ const menuItems = [
 const settingsMenuItems = [
     {
         href: '/admin/auditors',
-        label: 'Auditors',
+        label: 'Auditores',
         icon: Users,
     },
     {
         href: '/admin/areas',
-        label: 'Areas',
+        label: 'Áreas',
         icon: Building,
     },
     {
         href: '/admin/risk-types',
-        label: 'Risk Types',
+        label: 'Tipos de Risco',
         icon: AlertTriangleIcon,
     },
 ]
@@ -111,16 +110,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             ))}
              <Collapsible defaultOpen={isSettingsActive}>
                 <SidebarMenuItem>
-                    <CollapsibleTrigger className="w-full">
+                    <CollapsibleTrigger asChild className="w-full">
                         <SidebarMenuButton
                             isSubmenu
                             className="w-full"
-                            tooltip="Settings"
+                            tooltip="Configurações"
                             >
-                                <>
-                                    <Settings />
-                                    <span>Settings</span>
-                                </>
+                                <Settings />
+                                <span>Configurações</span>
                         </SidebarMenuButton>
                     </CollapsibleTrigger>
                 </SidebarMenuItem>
@@ -151,7 +148,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   <AvatarFallback>AD</AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col text-left group-data-[collapsible=icon]:hidden">
-                  <span className="text-sm font-medium">Admin User</span>
+                  <span className="text-sm font-medium">Usuário Admin</span>
                   <span className="text-xs text-muted-foreground">
                     admin@worksafe.ai
                   </span>
@@ -162,7 +159,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium leading-none">
-                    Admin User
+                    Usuário Admin
                   </p>
                   <p className="text-xs leading-none text-muted-foreground">
                     admin@worksafe.ai
@@ -170,10 +167,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Profile</DropdownMenuItem>
-              <DropdownMenuItem>Settings</DropdownMenuItem>
+              <DropdownMenuItem>Perfil</DropdownMenuItem>
+              <DropdownMenuItem>Configurações</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Log out</DropdownMenuItem>
+              <DropdownMenuItem>Sair</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </SidebarFooter>

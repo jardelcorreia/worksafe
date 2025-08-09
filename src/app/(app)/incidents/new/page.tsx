@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -48,8 +49,8 @@ export default function NewIncidentPage() {
       riskType: '',
       description: '',
       responsible: '',
-      potential: 'Medium',
-      status: 'In Progress',
+      potential: 'Médio',
+      status: 'Em Andamento',
       date: new Date().toISOString(),
       deadline: new Date().toISOString(),
     },
@@ -59,14 +60,14 @@ export default function NewIncidentPage() {
     const result = await addIncident(values);
     if (result.success) {
       toast({
-        title: 'Success',
+        title: 'Sucesso',
         description: result.message,
       });
       router.push('/incidents');
     } else {
       toast({
-        title: 'Error',
-        description: 'Failed to add incident.',
+        title: 'Erro',
+        description: 'Falha ao adicionar incidente.',
         variant: 'destructive',
       });
     }
@@ -75,7 +76,7 @@ export default function NewIncidentPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Log a New Safety Incident</CardTitle>
+        <CardTitle>Registrar Novo Incidente de Segurança</CardTitle>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -90,7 +91,7 @@ export default function NewIncidentPage() {
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select an auditor" />
+                          <SelectValue placeholder="Selecione um auditor" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -110,7 +111,7 @@ export default function NewIncidentPage() {
                 name="date"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>Date</FormLabel>
+                    <FormLabel>Data</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
@@ -122,9 +123,9 @@ export default function NewIncidentPage() {
                             )}
                           >
                             {field.value ? (
-                              format(new Date(field.value), 'PPP')
+                              format(new Date(field.value), 'PPP', { locale: ptBR })
                             ) : (
-                              <span>Pick a date</span>
+                              <span>Escolha uma data</span>
                             )}
                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                           </Button>
@@ -136,6 +137,7 @@ export default function NewIncidentPage() {
                           selected={new Date(field.value)}
                           onSelect={(date) => field.onChange(date?.toISOString())}
                           initialFocus
+                          locale={ptBR}
                         />
                       </PopoverContent>
                     </Popover>
@@ -148,11 +150,11 @@ export default function NewIncidentPage() {
                 name="area"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Area</FormLabel>
+                    <FormLabel>Área</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select an area" />
+                          <SelectValue placeholder="Selecione uma área" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -170,11 +172,11 @@ export default function NewIncidentPage() {
                 name="riskType"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Type of Risk Situation</FormLabel>
+                    <FormLabel>Tipo de Situação de Risco</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select a risk type" />
+                          <SelectValue placeholder="Selecione um tipo de risco" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -192,11 +194,11 @@ export default function NewIncidentPage() {
                 name="potential"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Potential</FormLabel>
+                    <FormLabel>Potencial</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select potential level" />
+                          <SelectValue placeholder="Selecione o nível de potencial" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -214,10 +216,10 @@ export default function NewIncidentPage() {
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Description of Unsafe Situation</FormLabel>
+                    <FormLabel>Descrição da Situação de Insegurança</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Describe the incident in detail..."
+                        placeholder="Descreva o incidente em detalhes..."
                         {...field}
                       />
                     </FormControl>
@@ -230,9 +232,9 @@ export default function NewIncidentPage() {
                 name="responsible"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Responsible for Action</FormLabel>
+                    <FormLabel>Responsável pela Ação</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g. Maintenance Team" {...field} />
+                      <Input placeholder="Ex: Equipe de Manutenção" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -243,7 +245,7 @@ export default function NewIncidentPage() {
                 name="deadline"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>Deadline</FormLabel>
+                    <FormLabel>Prazo Final</FormLabel>
                      <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
@@ -255,9 +257,9 @@ export default function NewIncidentPage() {
                             )}
                           >
                             {field.value ? (
-                              format(new Date(field.value), 'PPP')
+                              format(new Date(field.value), 'PPP', { locale: ptBR })
                             ) : (
-                              <span>Pick a date</span>
+                              <span>Escolha uma data</span>
                             )}
                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                           </Button>
@@ -269,6 +271,7 @@ export default function NewIncidentPage() {
                           selected={new Date(field.value)}
                           onSelect={(date) => field.onChange(date?.toISOString())}
                           initialFocus
+                          locale={ptBR}
                         />
                       </PopoverContent>
                     </Popover>
@@ -281,11 +284,11 @@ export default function NewIncidentPage() {
                 name="status"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Status of Action</FormLabel>
+                    <FormLabel>Status da Ação</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select status" />
+                          <SelectValue placeholder="Selecione o status" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -301,7 +304,7 @@ export default function NewIncidentPage() {
             </div>
             <div className="flex justify-end">
               <Button type="submit" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting ? 'Submitting...' : 'Submit Incident'}
+                {form.formState.isSubmitting ? 'Enviando...' : 'Enviar Incidente'}
               </Button>
             </div>
           </form>

@@ -14,7 +14,7 @@ export default async function IncidentsPage() {
         <Button asChild>
           <Link href="/incidents/new">
             <PlusCircle className="mr-2 h-4 w-4" />
-            Add New Incident
+            Adicionar Novo Incidente
           </Link>
         </Button>
       </div>

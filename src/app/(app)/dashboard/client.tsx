@@ -44,7 +44,7 @@ export function DashboardClient() {
           setForecast(forecastData);
         }
       } catch (error) {
-        console.error('Error getting AI features:', error);
+        console.error('Erro ao obter recursos de IA:', error);
       } finally {
         setLoading(false);
       }
@@ -54,7 +54,7 @@ export function DashboardClient() {
 
   const totalIncidents = incidents.length;
   const resolvedIncidents = incidents.filter(
-    (i) => i.status === 'Resolved'
+    (i) => i.status === 'Resolvido'
   ).length;
 
   const areaChartData = useMemo(
@@ -72,28 +72,28 @@ export function DashboardClient() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Total Incidents
+              Total de Incidentes
             </CardTitle>
             <ListChecks className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalIncidents}</div>
             <p className="text-xs text-muted-foreground">
-              Total incidents recorded
+              Total de incidentes registrados
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Resolved Incidents
+              Incidentes Resolvidos
             </CardTitle>
             <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{resolvedIncidents}</div>
             <p className="text-xs text-muted-foreground">
-              {((resolvedIncidents / totalIncidents) * 100).toFixed(1)}% resolved
+              {((resolvedIncidents / totalIncidents) * 100).toFixed(1)}% resolvidos
             </p>
           </CardContent>
         </Card>
@@ -102,22 +102,22 @@ export function DashboardClient() {
       {loading ? (
         <div className="flex items-center justify-center rounded-lg border border-dashed p-12">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="ml-4 text-lg">Analyzing data with AI...</p>
+          <p className="ml-4 text-lg">Analisando dados com IA...</p>
         </div>
       ) : (
         <div className="grid gap-6 lg:grid-cols-2">
           <Card>
             <CardHeader>
-              <CardTitle>Most Frequent Incident Areas</CardTitle>
+              <CardTitle>Áreas com Maior Frequência de Incidentes</CardTitle>
               <CardDescription>
-                Top areas where safety incidents occur.
+                Principais áreas onde ocorrem incidentes de segurança.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <ChartContainer
                 config={{
                   count: {
-                    label: 'Incidents',
+                    label: 'Incidentes',
                     color: 'hsl(var(--primary))',
                   },
                 }}
@@ -143,16 +143,16 @@ export function DashboardClient() {
           </Card>
           <Card>
             <CardHeader>
-              <CardTitle>Most Frequent Risk Types</CardTitle>
+              <CardTitle>Tipos de Risco Mais Frequentes</CardTitle>
               <CardDescription>
-                Top types of risks identified in incidents.
+                Principais tipos de riscos identificados nos incidentes.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <ChartContainer
                 config={{
                   count: {
-                    label: 'Incidents',
+                    label: 'Incidentes',
                     color: 'hsl(var(--accent))',
                   },
                 }}
@@ -173,9 +173,9 @@ export function DashboardClient() {
           </Card>
           <Card className="lg:col-span-2">
             <CardHeader>
-              <CardTitle>AI Trend Summary</CardTitle>
+              <CardTitle>Resumo de Tendências por IA</CardTitle>
               <CardDescription>
-                Overall risk trends and potential areas for improvement.
+                Tendências gerais de risco e potenciais áreas para melhoria.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -185,27 +185,26 @@ export function DashboardClient() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <AlertTriangle className="text-destructive" /> Predictive Risk
-                Alerts
+                <AlertTriangle className="text-destructive" /> Alertas Preditivos de Risco
               </CardTitle>
               <CardDescription>
-                Potential future safety incidents based on trends.
+                Potenciais futuros incidentes de segurança com base nas tendências.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <h4 className="font-semibold mb-2">Predicted Incidents:</h4>
+              <h4 className="font-semibold mb-2">Incidentes Previstos:</h4>
               <p className="text-sm mb-4">{forecast?.predictedIncidents}</p>
-              <h4 className="font-semibold mb-2">Reasoning:</h4>
+              <h4 className="font-semibold mb-2">Justificativa:</h4>
               <p className="text-sm">{forecast?.reasoning}</p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <BarChart2 className="text-primary" /> Preventative Actions
+                <BarChart2 className="text-primary" /> Ações Preventivas
               </CardTitle>
               <CardDescription>
-                Suggested actions to mitigate predicted incidents.
+                Ações sugeridas para mitigar os incidentes previstos.
               </CardDescription>
             </CardHeader>
             <CardContent>
