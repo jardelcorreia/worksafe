@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -7,6 +8,7 @@ import {
   CheckCircle2,
   ListChecks,
   Loader2,
+  Info,
 } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip } from 'recharts';
 import {
@@ -20,6 +22,7 @@ import {
   ChartContainer,
   ChartTooltipContent,
 } from '@/components/ui/chart';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { analyzeTrends, riskForecaster, fetchIncidents } from '@/lib/actions';
 import type {
   AnalyzeTrendsOutput,
@@ -32,22 +35,26 @@ export function DashboardClient() {
   const [forecast, setForecast] = useState<RiskForecasterOutput | null>(null);
   const [incidents, setIncidents] = useState<SafetyIncident[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hasData, setHasData] = useState(false);
 
   useEffect(() => {
     async function getAIFeatures() {
       setLoading(true);
       try {
-        // Fetch incidents first
         const incidentsData = await fetchIncidents();
         setIncidents(incidentsData);
 
-        // Then run AI analysis
-        const trendData = await analyzeTrends();
-        setTrends(trendData);
+        if (incidentsData.length > 0) {
+          setHasData(true);
+          const trendData = await analyzeTrends();
+          setTrends(trendData);
 
-        if (trendData?.riskSummary) {
-          const forecastData = await riskForecaster(trendData.riskSummary);
-          setForecast(forecastData);
+          if (trendData?.riskSummary) {
+            const forecastData = await riskForecaster(trendData.riskSummary);
+            setForecast(forecastData);
+          }
+        } else {
+          setHasData(false);
         }
       } catch (error) {
         console.error('Erro ao obter recursos de IA:', error);
@@ -108,8 +115,16 @@ export function DashboardClient() {
       {loading ? (
         <div className="flex items-center justify-center rounded-lg border border-dashed p-12">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="ml-4 text-lg">Atualizando insights com IA...</p>
+          <p className="ml-4 text-lg">Analisando dados...</p>
         </div>
+      ) : !hasData ? (
+        <Alert>
+            <Info className="h-4 w-4" />
+            <AlertTitle>Nenhum dado para analisar</AlertTitle>
+            <AlertDescription>
+                Ainda não há incidentes registrados. Assim que o primeiro incidente for adicionado, os insights de IA aparecerão aqui.
+            </AlertDescription>
+        </Alert>
       ) : (
         <div className="grid gap-6 lg:grid-cols-2">
           <Card>
@@ -222,3 +237,5 @@ export function DashboardClient() {
     </div>
   );
 }
+
+    
