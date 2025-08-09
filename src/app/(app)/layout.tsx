@@ -33,6 +33,8 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { UserProfile } from './user-profile';
+import { useAuth } from '@/contexts/AuthContext';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const menuItems = [
   {
@@ -74,10 +76,38 @@ const settingsMenuItems = [
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
+  const { role, loading } = useAuth();
+
+  React.useEffect(() => {
+    if (!loading && !role) {
+      router.replace('/login');
+    }
+  }, [role, loading, router]);
 
   const isSettingsActive = settingsMenuItems.some((item) =>
     pathname.startsWith(item.href)
   );
+  
+  const currentItem = [...menuItems, ...settingsMenuItems].find((item) => {
+    if (item.exactMatch) {
+      return pathname === item.href;
+    }
+    return pathname.startsWith(item.href);
+  });
+
+  if (loading || !role) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="flex items-center space-x-4">
+            <Skeleton className="h-12 w-12 rounded-full" />
+            <div className="space-y-2">
+                <Skeleton className="h-4 w-[250px]" />
+                <Skeleton className="h-4 w-[200px]" />
+            </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <SidebarProvider>
@@ -102,32 +132,34 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 </SidebarMenuButton>
               </SidebarMenuItem>
             ))}
-            <Collapsible defaultOpen={isSettingsActive}>
-              <SidebarMenuItem>
-                <CollapsibleTrigger asChild>
-                  <SidebarMenuButton isSubmenu className="w-full">
-                    <Settings />
-                    <span>Configurações</span>
-                  </SidebarMenuButton>
-                </CollapsibleTrigger>
-              </SidebarMenuItem>
+            {role === 'admin' && (
+              <Collapsible defaultOpen={isSettingsActive}>
+                <SidebarMenuItem>
+                  <CollapsibleTrigger asChild>
+                    <SidebarMenuButton isSubmenu className="w-full">
+                      <Settings />
+                      <span>Configurações</span>
+                    </SidebarMenuButton>
+                  </CollapsibleTrigger>
+                </SidebarMenuItem>
 
-              <CollapsibleContent asChild>
-                <SidebarMenuSub>
-                  {settingsMenuItems.map((item) => (
-                    <SidebarMenuSubItem key={item.href}>
-                      <SidebarMenuSubButton
-                        isActive={pathname.startsWith(item.href)}
-                        onClick={() => router.push(item.href)}
-                      >
-                        <item.icon />
-                        <span>{item.label}</span>
-                      </SidebarMenuSubButton>
-                    </SidebarMenuSubItem>
-                  ))}
-                </SidebarMenuSub>
-              </CollapsibleContent>
-            </Collapsible>
+                <CollapsibleContent asChild>
+                  <SidebarMenuSub>
+                    {settingsMenuItems.map((item) => (
+                      <SidebarMenuSubItem key={item.href}>
+                        <SidebarMenuSubButton
+                          isActive={pathname.startsWith(item.href)}
+                          onClick={() => router.push(item.href)}
+                        >
+                          <item.icon />
+                          <span>{item.label}</span>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                    ))}
+                  </SidebarMenuSub>
+                </CollapsibleContent>
+              </Collapsible>
+            )}
           </SidebarMenu>
         </SidebarContent>
         <SidebarFooter>
@@ -138,9 +170,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <header className="flex h-14 items-center gap-4 border-b bg-background/50 backdrop-blur-sm px-4 lg:h-[60px] lg:px-6 sticky top-0 z-30">
           <SidebarTrigger className="md:hidden" />
           <h1 className="text-lg font-semibold md:text-2xl font-headline flex-1">
-            {[...menuItems, ...settingsMenuItems].find((item) =>
-              pathname.startsWith(item.href)
-            )?.label}
+            {currentItem?.label || 'Dashboard'}
           </h1>
         </header>
         <main className="flex-1 p-4 md:p-6">{children}</main>
