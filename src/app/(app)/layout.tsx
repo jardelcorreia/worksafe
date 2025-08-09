@@ -10,6 +10,7 @@ import {
   Users,
   Building,
   AlertTriangleIcon,
+  KeyRound,
 } from 'lucide-react';
 import {
   SidebarProvider,
@@ -24,7 +25,6 @@ import {
   SidebarInset,
   SidebarMenuSub,
   SidebarMenuSubButton,
-  SidebarMenuSubItem,
 } from '@/components/ui/sidebar';
 import { Logo } from '@/components/icons';
 import {
@@ -70,6 +70,11 @@ const settingsMenuItems = [
     href: '/admin/risk-types',
     label: 'Tipos de Risco',
     icon: AlertTriangleIcon,
+  },
+  {
+    href: '/admin/account',
+    label: 'Conta',
+    icon: KeyRound,
   },
 ];
 

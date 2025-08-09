@@ -56,8 +56,8 @@ export default function LoginPage() {
   };
 
   const handleAdminLogin = (values: z.infer<typeof adminLoginSchema>) => {
-    if (values.password === 'admin') {
-      login('admin');
+    const success = login('admin', values.password);
+    if (success) {
       router.push('/dashboard');
     } else {
       toast({

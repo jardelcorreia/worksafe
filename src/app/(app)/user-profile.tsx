@@ -80,9 +80,9 @@ export function UserProfile() {
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>Perfil</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => router.push('/dashboard')}>Perfil</DropdownMenuItem>
           {role === 'admin' && (
-            <DropdownMenuItem>Configurações da Conta</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push('/admin/account')}>Configurações da Conta</DropdownMenuItem>
           )}
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleLogout}>Sair</DropdownMenuItem>
