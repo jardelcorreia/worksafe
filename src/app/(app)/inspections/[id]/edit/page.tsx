@@ -367,7 +367,7 @@ export default function EditInspectionPage({ params }: { params: { id: string } 
                 name="description"
                 render={({ field }) => (
                   <FormItem className="lg:col-span-3">
-                    <FormLabel>Descrição da Situação de Insegurança</FormLabel>
+                    <FormLabel>Descrição da Situação Encontrada</FormLabel>
                     <FormControl>
                       <Textarea
                         placeholder="Descreva a situação em detalhes..."

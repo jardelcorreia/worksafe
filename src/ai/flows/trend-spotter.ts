@@ -16,9 +16,9 @@ const AnalyzeTrendsInputSchema = z.array(
     área: z.string().describe('A área onde a inspeção ocorreu.'),
     tipoDeSituaçãoDeRisco: z.string().describe('O tipo de situação de risco.'),
     potencial: z.string().describe('O nível de risco potencial (e.g., Alto, Médio, Baixo, Sem Desvio).'),
-    descriçãoDaSituaçãoInsegura: z
+    descriçãoDaSituaçãoEncontrada: z
       .string()
-      .describe('Uma descrição detalhada da situação insegura.'),
+      .describe('Uma descrição detalhada da situação encontrada.'),
   })
 );
 export type AnalyzeTrendsInput = z.infer<typeof AnalyzeTrendsInputSchema>;
@@ -53,7 +53,7 @@ const prompt = ai.definePrompt({
 
   Dados de Inspeções de Segurança:
   {{#each this}}
-  - Area: {{this.área}}, Tipo de Risco: {{this.tipoDeSituaçãoDeRisco}}, Potencial: {{this.potencial}}, Descrição: {{this.descriçãoDaSituaçãoInsegura}}
+  - Area: {{this.área}}, Tipo de Risco: {{this.tipoDeSituaçãoDeRisco}}, Potencial: {{this.potencial}}, Descrição: {{this.descriçãoDaSituaçãoEncontrada}}
   {{/each}}
   `,
 });

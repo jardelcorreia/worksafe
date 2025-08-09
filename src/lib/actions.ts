@@ -101,7 +101,7 @@ export async function analyzeTrends(filters?: DateFilters) {
       área: i.area,
       tipoDeSituaçãoDeRisco: i.riskType,
       potencial: i.potential,
-      descriçãoDaSituaçãoInsegura: i.description,
+      descriçãoDaSituaçãoEncontrada: i.description,
     }));
     const result = await analyzeTrendsFlow(aiInput);
     return result;

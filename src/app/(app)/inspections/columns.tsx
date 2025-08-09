@@ -93,7 +93,7 @@ function DetailsModal({ inspection, children }: { inspection: SafetyInspection, 
             </Badge>
           </div>
           <div className="col-span-full">
-            <strong>Descrição:</strong>
+            <strong>Descrição da Situação Encontrada:</strong>
             <p className="text-muted-foreground">{inspection.description}</p>
           </div>
           <div className="col-span-full">
@@ -200,7 +200,7 @@ export const columns: ColumnDef<SafetyInspection>[] = [
   },
   {
     accessorKey: 'description',
-    header: 'Descrição',
+    header: 'Descrição da Situação Encontrada',
     cell: ({ row }) => {
       const description = row.getValue('description') as string;
       if (description.length <= 50) {
