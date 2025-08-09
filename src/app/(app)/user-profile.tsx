@@ -25,13 +25,13 @@ export function UserProfile() {
   const userDetails: Record<NonNullable<Role>, { name: string; email: string; avatar: string; fallback: string }> = {
     admin: {
       name: 'Usuário Admin',
-      email: 'admin@worksafe.ai',
+      email: 'admin@worksafe.com',
       avatar: 'https://placehold.co/40x40',
       fallback: 'AD',
     },
     auditor: {
       name: 'Usuário Auditor',
-      email: 'auditor@worksafe.ai',
+      email: 'auditor@worksafe.com',
       avatar: 'https://placehold.co/40x40',
       fallback: 'AU',
     },

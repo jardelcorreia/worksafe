@@ -4,7 +4,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/contexts/AuthContext';
 
 export const metadata: Metadata = {
-  title: 'WorkSafe AI',
+  title: 'WorkSafe',
   description: 'Um sistema para coletar e analisar dados de segurança no trabalho.',
 };
 

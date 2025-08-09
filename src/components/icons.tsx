@@ -8,7 +8,7 @@ export function Logo(props: React.SVGProps<SVGSVGElement>) {
         strokeWidth={1.5}
       />
       <div className="text-lg font-bold transition-all group-data-[collapsible=icon]:hidden">
-        <span className="font-headline">WorkSafe AI</span>
+        <span className="font-headline">WorkSafe</span>
       </div>
     </div>
   );
