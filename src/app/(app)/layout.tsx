@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -11,6 +12,7 @@ import {
   Building,
   AlertTriangleIcon,
   KeyRound,
+  Database,
 } from 'lucide-react';
 import {
   SidebarProvider,
@@ -76,6 +78,11 @@ const settingsMenuItems = [
     href: '/admin/account',
     label: 'Conta',
     icon: KeyRound,
+  },
+   {
+    href: '/admin/seed',
+    label: 'Popular Dados',
+    icon: Database,
   },
 ];
 
