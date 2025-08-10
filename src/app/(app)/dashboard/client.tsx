@@ -241,7 +241,7 @@ export function DashboardClient() {
               >
                 <BarChart data={riskTypeChartData} layout="vertical" accessibilityLayer>
                   <CartesianGrid horizontal={false} />
-                  <YAxis dataKey="riskType" type="category" tickLine={false} tickMargin={10} axisLine={false} width={120} />
+                  <YAxis dataKey="riskType" type="category" tickLine={false} tickMargin={10} axisLine={false} width={80} />
                   <XAxis type="number" hide />
                   <Tooltip
                     cursor={false}
@@ -287,7 +287,7 @@ export function DashboardClient() {
               <CardDescription>
                 Ações sugeridas para mitigar os problemas previstos.
               </CardDescription>
-            </CardHeader>
+            </Header>
             <CardContent>
               <p className="text-sm">{forecast?.preventativeActions}</p>
             </CardContent>
