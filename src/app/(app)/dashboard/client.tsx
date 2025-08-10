@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useMemo } from 'react';
 import {
   AlertTriangle,
   BarChart2,
@@ -14,8 +14,7 @@ import {
   Calendar as CalendarIcon,
 } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip } from 'recharts';
-import { DateRange } from 'react-day-picker';
-import { addDays, format } from 'date-fns';
+import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
   Card,
@@ -36,69 +35,21 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { analyzeTrends, riskForecaster, fetchInspections } from '@/lib/actions';
-import type {
-  AnalyzeTrendsOutput,
-  RiskForecasterOutput,
-} from '@/lib/actions';
-import type { SafetyInspection } from '@/lib/types';
+import { useDashboard } from '@/contexts/DashboardContext';
 import { cn } from '@/lib/utils';
 
 
 export function DashboardClient() {
-  const [trends, setTrends] = useState<AnalyzeTrendsOutput | null>(null);
-  const [forecast, setForecast] = useState<RiskForecasterOutput | null>(null);
-  const [inspections, setInspections] = useState<SafetyInspection[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [hasData, setHasData] = useState(false);
-  const [date, setDate] = useState<DateRange | undefined>({
-    from: addDays(new Date(), -30),
-    to: new Date(),
-  });
-
-  const getAIFeatures = useCallback(async (filterDate?: DateRange) => {
-      setLoading(true);
-      // Reset previous results for a clean analysis
-      setTrends(null);
-      setForecast(null);
-      setHasData(false);
-      try {
-        const inspectionsData = await fetchInspections({
-            from: filterDate?.from,
-            to: filterDate?.to
-        });
-        setInspections(inspectionsData);
-
-        if (inspectionsData.length > 0) {
-          setHasData(true);
-          const trendData = await analyzeTrends({
-            from: filterDate?.from,
-            to: filterDate?.to
-          });
-          setTrends(trendData);
-
-          if (trendData?.riskSummary) {
-            const forecastData = await riskForecaster(trendData.riskSummary, {
-                from: filterDate?.from,
-                to: filterDate?.to
-            });
-            setForecast(forecastData);
-          }
-        } else {
-          setHasData(false);
-        }
-      } catch (error) {
-        console.error('Falha ao buscar dados para o dashboard:', error);
-      } finally {
-        setLoading(false);
-      }
-    }, []);
-
-  // This useEffect will run ONLY ONCE when the component first loads.
-  useEffect(() => {
-    getAIFeatures(date);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const {
+    trends,
+    forecast,
+    inspections,
+    loading,
+    hasData,
+    date,
+    setDate,
+    getAIFeatures,
+  } = useDashboard();
 
   const totalInspections = inspections.length;
   const resolvedInspections = inspections.filter(
