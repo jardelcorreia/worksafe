@@ -62,8 +62,13 @@ export function DashboardClient() {
     (i) => i.potential === 'Alto'
   ).length;
 
-  const areaChartData = useMemo(() => trends?.mostFrequentAreas || [], [trends]);
-  const riskTypeChartData = useMemo(() => trends?.mostFrequentRiskTypes || [], [trends]);
+  const areaChartData = useMemo(() => {
+    return trends?.mostFrequentAreas || [];
+  }, [trends]);
+
+  const riskTypeChartData = useMemo(() => {
+    return trends?.mostFrequentRiskTypes || [];
+  }, [trends]);
 
   return (
     <div className="grid gap-6">
@@ -222,7 +227,7 @@ export function DashboardClient() {
               <CardDescription>
                 Principais tipos de riscos identificados nas inspeções.
               </CardDescription>
-            </Header>
+            </CardHeader>
             <CardContent>
               <ChartContainer
                 config={{
@@ -265,7 +270,7 @@ export function DashboardClient() {
               <CardDescription>
                 Potenciais futuros problemas de segurança com base nas tendências.
               </CardDescription>
-            </Header>
+            </CardHeader>
             <CardContent>
               <h4 className="font-semibold mb-2">Problemas Previstos:</h4>
               <p className="text-sm mb-4">{forecast?.predictedIssues}</p>
@@ -281,7 +286,7 @@ export function DashboardClient() {
               <CardDescription>
                 Ações sugeridas para mitigar os problemas previstos.
               </CardDescription>
-            </Header>
+            </CardHeader>
             <CardContent>
               <p className="text-sm">{forecast?.preventativeActions}</p>
             </CardContent>
@@ -291,3 +296,5 @@ export function DashboardClient() {
     </div>
   );
 }
+
+    
