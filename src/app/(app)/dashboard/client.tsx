@@ -11,6 +11,7 @@ import {
   ShieldAlert,
   Clock,
   Calendar as CalendarIcon,
+  Sparkles,
 } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Text } from 'recharts';
 import { format } from 'date-fns';
@@ -71,6 +72,7 @@ export function DashboardClient() {
     date,
     setDate,
     getAIFeatures,
+    analysisPerformed,
   } = useDashboard();
 
   const totalInspections = inspections.length;
@@ -160,8 +162,10 @@ export function DashboardClient() {
             >
               {loading ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin flex-shrink-0" />
-              ) : null}
-              <span className="truncate">Analisar Período</span>
+              ) : (
+                <Sparkles className="mr-2 h-4 w-4 flex-shrink-0" />
+              )}
+              <span className="truncate">Analisar com IA</span>
             </Button>
           </div>
         </div>
@@ -229,9 +233,20 @@ export function DashboardClient() {
             <Loader2 className="h-8 w-8 animate-spin text-primary mb-3" />
             <p className="text-base md:text-lg text-center">Analisando dados...</p>
             <p className="text-sm text-muted-foreground text-center mt-1">
-              Isso pode levar alguns segundos
+              A IA está processando as informações, isso pode levar alguns segundos
             </p>
           </div>
+        ) : !analysisPerformed ? (
+            <Alert>
+              <Sparkles className="h-4 w-4" />
+              <AlertTitle>Pronto para análise</AlertTitle>
+              <AlertDescription className="text-sm">
+                {!hasData
+                  ? 'Não há dados no período selecionado. Ajuste as datas e tente novamente.'
+                  : 'Clique no botão "Analisar com IA" para gerar gráficos e insights sobre o período selecionado.'
+                }
+              </AlertDescription>
+            </Alert>
         ) : !hasData ? (
           <Alert>
             <Info className="h-4 w-4" />

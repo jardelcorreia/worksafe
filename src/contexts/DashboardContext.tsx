@@ -19,6 +19,7 @@ interface DashboardContextType {
     inspections: SafetyInspection[];
     loading: boolean;
     hasData: boolean;
+    analysisPerformed: boolean;
     date: DateRange | undefined;
     setDate: (date: DateRange | undefined) => void;
     getAIFeatures: (filterDate?: DateRange) => Promise<void>;
@@ -30,20 +31,47 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     const [trends, setTrends] = useState<AnalyzeTrendsOutput | null>(null);
     const [forecast, setForecast] = useState<RiskForecasterOutput | null>(null);
     const [inspections, setInspections] = useState<SafetyInspection[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false); // Only true during AI analysis
     const [hasData, setHasData] = useState(false);
+    const [analysisPerformed, setAnalysisPerformed] = useState(false);
     const [date, setDate] = useState<DateRange | undefined>({
         from: addDays(new Date(), -30),
         to: new Date(),
     });
 
-    const getAIFeatures = useCallback(async (filterDate?: DateRange) => {
+    const getInspectionsForDateRange = useCallback(async (filterDate?: DateRange) => {
         setLoading(true);
-        // Reset previous results for a clean analysis
+        // Reset previous results
         setTrends(null);
         setForecast(null);
         setHasData(false);
+        setAnalysisPerformed(false);
         try {
+            const inspectionsData = await fetchInspections({
+                from: filterDate?.from,
+                to: filterDate?.to
+            });
+            setInspections(inspectionsData);
+            if (inspectionsData.length > 0) {
+                setHasData(true);
+            }
+        } catch (error) {
+            console.error('Falha ao buscar inspeções:', error);
+            setInspections([]);
+            setHasData(false);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    const getAIFeatures = useCallback(async (filterDate?: DateRange) => {
+        setLoading(true);
+        setAnalysisPerformed(true);
+        setTrends(null);
+        setForecast(null);
+        
+        try {
+            // Re-fetch inspections for the selected range to ensure data is current
             const inspectionsData = await fetchInspections({
                 from: filterDate?.from,
                 to: filterDate?.to
@@ -70,16 +98,17 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
             }
         } catch (error) {
             console.error('Falha ao buscar dados para o dashboard:', error);
+            setHasData(false);
         } finally {
             setLoading(false);
         }
     }, []);
 
-    // This useEffect will run ONLY ONCE when the provider first loads.
+    // This useEffect will run ONLY ONCE to load the initial inspection data without AI analysis.
     useEffect(() => {
-        getAIFeatures(date);
+        getInspectionsForDateRange(date);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [date]);
 
 
     const value = {
@@ -90,7 +119,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         hasData,
         date,
         setDate,
-        getAIFeatures
+        getAIFeatures,
+        analysisPerformed
     };
 
     return (
