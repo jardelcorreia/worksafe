@@ -29,6 +29,7 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
+  useSidebar,
 } from '@/components/ui/sidebar';
 import { Logo } from '@/components/icons';
 import {
@@ -83,16 +84,22 @@ const settingsMenuItems = [
   },
 ];
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+function AppContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { role, loading } = useAuth();
+  const { setOpenMobile } = useSidebar();
 
   React.useEffect(() => {
     if (!loading && !role) {
       router.replace('/login');
     }
   }, [role, loading, router]);
+
+  const handleNavigate = (href: string) => {
+    router.push(href);
+    setOpenMobile(false);
+  };
 
   const isSettingsActive = settingsMenuItems.some((item) =>
     pathname.startsWith(item.href)
@@ -120,7 +127,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <SidebarProvider>
+    <>
       <Sidebar>
         <SidebarHeader>
           <Logo />
@@ -135,7 +142,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                       ? pathname === item.href
                       : pathname.startsWith(item.href)
                   }
-                  onClick={() => router.push(item.href)}
+                  onClick={() => handleNavigate(item.href)}
                 >
                   <item.icon />
                   <span>{item.label}</span>
@@ -159,7 +166,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                       <SidebarMenuSubItem key={item.href}>
                         <SidebarMenuSubButton
                           isActive={pathname.startsWith(item.href)}
-                          onClick={() => router.push(item.href)}
+                          onClick={() => handleNavigate(item.href)}
                         >
                           <item.icon />
                           <span>{item.label}</span>
@@ -187,6 +194,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <main className="flex-1 p-4 sm:p-6">{children}</main>
         </DashboardProvider>
       </SidebarInset>
-    </SidebarProvider>
+    </>
   );
+}
+
+export default function AppLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <SidebarProvider>
+      <AppContent>{children}</AppContent>
+    </SidebarProvider>
+  )
 }
