@@ -33,6 +33,7 @@ import {
 } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { Logo } from '@/components/icons';
+import { ShieldCheck } from 'lucide-react';
 
 const adminLoginSchema = z.object({
   password: z.string().min(1, 'A senha é obrigatória.'),
@@ -74,73 +75,87 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
-      <Tabs
-        value={activeTab}
-        onValueChange={setActiveTab}
-        className="w-full max-w-md"
-      >
-        <div className="flex justify-center mb-6">
-           <Logo />
+    <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2">
+      <div className="hidden bg-primary/90 lg:flex lg:flex-col lg:items-center lg:justify-center lg:p-10">
+        <div className="text-center text-primary-foreground">
+            <Logo />
+            <h1 className="mt-4 text-4xl font-bold font-headline">WorkSafe</h1>
+            <p className="mt-2 text-lg text-primary-foreground/80">
+                Segurança em primeiro lugar, sempre.
+            </p>
+            <ShieldCheck className="mx-auto mt-10 h-32 w-32 text-primary-foreground/20" strokeWidth={1} />
         </div>
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="auditor">Auditor</TabsTrigger>
-          <TabsTrigger value="admin">Admin</TabsTrigger>
-        </TabsList>
-        <TabsContent value="auditor">
-          <Card>
-            <CardHeader>
-              <CardTitle>Login como Auditor</CardTitle>
-              <CardDescription>
-                Acesso para registro e consulta de inspeções de segurança.
-              </CardDescription>
-            </CardHeader>
-            <CardFooter>
-              <Button className="w-full" onClick={handleAuditorLogin}>
-                Entrar como Auditor
-              </Button>
-            </CardFooter>
-          </Card>
-        </TabsContent>
-        <TabsContent value="admin">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleAdminLogin)}>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Login como Admin</CardTitle>
-                  <CardDescription>
-                    Acesso total ao sistema, incluindo configurações.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Senha</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="password"
-                            placeholder="Digite a senha de admin"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </CardContent>
-                <CardFooter>
-                  <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-                    {form.formState.isSubmitting ? 'Entrando...' : 'Entrar como Admin'}
-                  </Button>
-                </CardFooter>
-              </Card>
-            </form>
-          </Form>
-        </TabsContent>
-      </Tabs>
+      </div>
+      <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className="w-full max-w-md space-y-6">
+            <div className="lg:hidden text-center">
+                <Logo />
+            </div>
+            <Tabs
+                value={activeTab}
+                onValueChange={setActiveTab}
+                className="w-full"
+            >
+                <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="auditor">Auditor</TabsTrigger>
+                <TabsTrigger value="admin">Admin</TabsTrigger>
+                </TabsList>
+                <TabsContent value="auditor">
+                <Card>
+                    <CardHeader>
+                    <CardTitle>Login como Auditor</CardTitle>
+                    <CardDescription>
+                        Acesso para registro e consulta de inspeções de segurança.
+                    </CardDescription>
+                    </CardHeader>
+                    <CardFooter>
+                    <Button className="w-full" onClick={handleAuditorLogin}>
+                        Entrar como Auditor
+                    </Button>
+                    </CardFooter>
+                </Card>
+                </TabsContent>
+                <TabsContent value="admin">
+                <Form {...form}>
+                    <form onSubmit={form.handleSubmit(handleAdminLogin)}>
+                    <Card>
+                        <CardHeader>
+                        <CardTitle>Login como Admin</CardTitle>
+                        <CardDescription>
+                            Acesso total ao sistema, incluindo configurações.
+                        </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                        <FormField
+                            control={form.control}
+                            name="password"
+                            render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Senha</FormLabel>
+                                <FormControl>
+                                <Input
+                                    type="password"
+                                    placeholder="Digite a senha de admin"
+                                    {...field}
+                                />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                        />
+                        </CardContent>
+                        <CardFooter>
+                        <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+                            {form.formState.isSubmitting ? 'Entrando...' : 'Entrar como Admin'}
+                        </Button>
+                        </CardFooter>
+                    </Card>
+                    </form>
+                </Form>
+                </TabsContent>
+            </Tabs>
+        </div>
+      </div>
     </div>
   );
 }
