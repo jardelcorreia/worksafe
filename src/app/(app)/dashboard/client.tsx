@@ -1,7 +1,6 @@
-
 'use client';
 
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useEffect, useState } from 'react';
 import {
   AlertTriangle,
   BarChart2,
@@ -94,259 +93,318 @@ export function DashboardClient() {
   }, [trends]);
 
   return (
-    <div className="grid gap-6">
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+    <div className="w-full max-w-7xl mx-auto">
+      <div className="space-y-4 md:space-y-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center w-full sm:w-auto">
             <Popover>
-            <PopoverTrigger asChild>
+              <PopoverTrigger asChild>
                 <Button
-                id="date"
-                variant={'outline'}
-                className={cn(
-                    'w-full sm:w-auto sm:max-w-xs justify-start text-left font-normal',
+                  id="date"
+                  variant={'outline'}
+                  className={cn(
+                    'w-full sm:w-[280px] md:w-[320px] justify-start text-left font-normal h-11 px-3',
                     !date && 'text-muted-foreground'
-                )}
+                  )}
                 >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                <span className="truncate">
+                  <CalendarIcon className="mr-2 h-4 w-4 flex-shrink-0" />
+                  <span className="truncate text-sm">
                     {date?.from ? (
-                        date.to ? (
+                      date.to ? (
                         <>
-                            {format(date.from, 'dd/MM/yy', { locale: ptBR })} -{' '}
-                            {format(date.to, 'dd/MM/yy', { locale: ptBR })}
+                          <span className="block sm:hidden">
+                            {format(date.from, 'dd/MM/yy', { locale: ptBR })} - {format(date.to, 'dd/MM/yy', { locale: ptBR })}
+                          </span>
+                           <span className="hidden sm:block">
+                            {format(date.from, 'dd/MM/yyyy', { locale: ptBR })} - {format(date.to, 'dd/MM/yyyy', { locale: ptBR })}
+                          </span>
                         </>
-                        ) : (
-                        format(date.from, 'LLL dd, y', { locale: ptBR })
-                        )
+                      ) : (
+                        format(date.from, 'dd/MM/yyyy', { locale: ptBR })
+                      )
                     ) : (
-                        <span>Escolha um período</span>
+                      <span>Selecionar período</span>
                     )}
-                </span>
+                  </span>
                 </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
+              </PopoverTrigger>
+              <PopoverContent className="w-screen max-w-sm p-0 sm:w-auto" align="start">
                 <Calendar
-                    initialFocus
-                    mode="range"
-                    defaultMonth={date?.from}
-                    selected={date}
-                    onSelect={setDate}
-                    numberOfMonths={1}
-                    className="md:hidden"
-                    locale={ptBR}
+                  initialFocus
+                  mode="range"
+                  defaultMonth={date?.from}
+                  selected={date}
+                  onSelect={setDate}
+                  numberOfMonths={1}
+                  className="md:hidden"
+                  locale={ptBR}
                 />
-                 <Calendar
-                    initialFocus
-                    mode="range"
-                    defaultMonth={date?.from}
-                    selected={date}
-                    onSelect={setDate}
-                    numberOfMonths={2}
-                    className="hidden md:block"
-                    locale={ptBR}
+                <Calendar
+                  initialFocus
+                  mode="range"
+                  defaultMonth={date?.from}
+                  selected={date}
+                  onSelect={setDate}
+                  numberOfMonths={2}
+                  className="hidden md:block"
+                  locale={ptBR}
                 />
-            </PopoverContent>
+              </PopoverContent>
             </Popover>
-            <Button onClick={() => getAIFeatures(date)} disabled={loading} className="w-full sm:w-auto">
-                {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                Analisar Período
+            
+            <Button 
+              onClick={() => getAIFeatures(date)} 
+              disabled={loading} 
+              className="w-full sm:w-auto whitespace-nowrap h-11 px-4 font-medium"
+              size="default"
+            >
+              {loading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin flex-shrink-0" />
+              ) : null}
+              <span className="truncate">Analisar Período</span>
             </Button>
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="hover:shadow-md transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total de Inspeções
-            </CardTitle>
-            <ListChecks className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalInspections}</div>
-            <p className="text-xs text-muted-foreground">
-              Total de inspeções no período
-            </p>
-          </CardContent>
-        </Card>
-        <Card className="hover:shadow-md transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Inspeções Resolvidas
-            </CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">{resolvedInspections}</div>
-            <p className="text-xs text-muted-foreground">
-              {totalInspections > 0 ? ((resolvedInspections / totalInspections) * 100).toFixed(1) : 0}% resolvidas
-            </p>
-          </CardContent>
-        </Card>
-         <Card className="hover:shadow-md transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Inspeções Pendentes</CardTitle>
-            <Clock className="h-4 w-4 text-orange-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-orange-600">{pendingInspections}</div>
-             <p className="text-xs text-muted-foreground">
-              Inspeções "Em Andamento"
-            </p>
-          </CardContent>
-        </Card>
-        <Card className="hover:shadow-md transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Alto Potencial</CardTitle>
-            <ShieldAlert className="h-4 w-4 text-red-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">{highPotentialInspections}</div>
-            <p className="text-xs text-muted-foreground">
-              Inspeções com risco "Alto"
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {loading ? (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="mt-4 text-lg font-medium">Analisando dados...</p>
-          <p className="text-sm text-muted-foreground">Isso pode levar alguns segundos.</p>
+          </div>
         </div>
-      ) : !hasData ? (
-        <Alert>
+
+        <div className="grid gap-4 sm:gap-4 md:gap-6 grid-cols-2 lg:grid-cols-4">
+          <Card className="hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 pt-4">
+              <CardTitle className="text-xs sm:text-sm font-medium leading-tight">
+                Total de Inspeções
+              </CardTitle>
+              <ListChecks className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+            </CardHeader>
+            <CardContent className="px-4 pb-4">
+              <div className="text-xl sm:text-2xl font-bold">{totalInspections}</div>
+              <p className="text-xs text-muted-foreground mt-1 leading-tight">
+                Total no período
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 pt-4">
+              <CardTitle className="text-xs sm:text-sm font-medium leading-tight">
+                Resolvidas
+              </CardTitle>
+              <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
+            </CardHeader>
+            <CardContent className="px-4 pb-4">
+              <div className="text-xl sm:text-2xl font-bold text-green-600">{resolvedInspections}</div>
+              <p className="text-xs text-muted-foreground mt-1 leading-tight">
+                {totalInspections > 0 ? ((resolvedInspections / totalInspections) * 100).toFixed(1) : 0}% concluídas
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 pt-4">
+              <CardTitle className="text-xs sm:text-sm font-medium leading-tight">Pendentes</CardTitle>
+              <Clock className="h-4 w-4 text-orange-600 flex-shrink-0" />
+            </CardHeader>
+            <CardContent className="px-4 pb-4">
+              <div className="text-xl sm:text-2xl font-bold text-orange-600">{pendingInspections}</div>
+              <p className="text-xs text-muted-foreground mt-1 leading-tight">
+                Em andamento
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 pt-4">
+              <CardTitle className="text-xs sm:text-sm font-medium leading-tight">Alto Risco</CardTitle>
+              <ShieldAlert className="h-4 w-4 text-red-600 flex-shrink-0" />
+            </CardHeader>
+            <CardContent className="px-4 pb-4">
+              <div className="text-xl sm:text-2xl font-bold text-red-600">{highPotentialInspections}</div>
+              <p className="text-xs text-muted-foreground mt-1 leading-tight">
+                Potencial alto
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {loading ? (
+          <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 md:p-12">
+            <Loader2 className="h-8 w-8 animate-spin text-primary mb-3" />
+            <p className="text-base md:text-lg text-center">Analisando dados...</p>
+            <p className="text-sm text-muted-foreground text-center mt-1">
+              Isso pode levar alguns segundos
+            </p>
+          </div>
+        ) : !hasData ? (
+          <Alert>
             <Info className="h-4 w-4" />
-            <AlertTitle>Nenhum dado para analisar</AlertTitle>
-            <AlertDescription>
-                Não foram encontradas inspeções para o período selecionado. Por favor, ajuste as datas e tente novamente.
+            <AlertTitle>Nenhum dado disponível</AlertTitle>
+            <AlertDescription className="text-sm">
+              Não foram encontradas inspeções para o período selecionado. 
+              Ajuste as datas e tente novamente.
             </AlertDescription>
-        </Alert>
-      ) : (
-        <div className="grid gap-6 lg:grid-cols-2">
-          <Card className="hover:shadow-md transition-shadow">
-            <CardHeader>
-              <CardTitle className="text-base md:text-lg">Áreas com Maior Frequência</CardTitle>
-              <CardDescription>
-                Principais áreas onde ocorrem inspeções.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ChartContainer
-                config={{
-                  count: {
-                    label: 'Inspeções',
-                    color: 'hsl(var(--primary))',
-                  },
-                }}
-                className="h-[300px] w-full"
-              >
-                <BarChart data={areaChartData} accessibilityLayer margin={{ bottom: 50 }}>
-                  <CartesianGrid vertical={false} />
-                  <XAxis
-                    dataKey="area"
-                    tickLine={false}
-                    tickMargin={10}
-                    axisLine={false}
-                    angle={-45}
-                    textAnchor="end"
-                    interval={0}
-                    fontSize={12}
-                  />
-                  <YAxis fontSize={12} />
-                  <Tooltip
-                    cursor={false}
-                    content={<ChartTooltipContent indicator="dot" />}
-                  />
-                  <Bar dataKey="count" fill="var(--color-count)" radius={4} />
-                </BarChart>
-              </ChartContainer>
-            </CardContent>
-          </Card>
-          <Card className="hover:shadow-md transition-shadow">
-            <CardHeader>
-              <CardTitle className="text-base md:text-lg">Tipos de Risco Mais Frequentes</CardTitle>
-              <CardDescription>
-                Principais riscos identificados nas inspeções.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ChartContainer
-                config={{
-                  count: {
-                    label: 'Inspeções',
-                    color: 'hsl(var(--accent))',
-                  },
-                }}
-                className="h-[300px] w-full"
-              >
-                <BarChart data={riskTypeChartData} layout="vertical" accessibilityLayer margin={{ left: 10 }}>
-                  <CartesianGrid horizontal={false} />
-                  <YAxis 
-                    dataKey="riskType" 
-                    type="category" 
-                    tickLine={false} 
-                    tickMargin={5} 
-                    axisLine={false} 
-                    width={80}
-                    interval={0}
-                    tick={<CustomizedYAxisTick />}
-                  />
-                  <XAxis type="number" hide />
-                  <Tooltip
-                    cursor={false}
-                    content={<ChartTooltipContent indicator="dot" />}
-                  />
-                  <Bar dataKey="count" fill="var(--color-count)" radius={4} />
-                </BarChart>
-              </ChartContainer>
-            </CardContent>
-          </Card>
-          <Card className="lg:col-span-2 hover:shadow-md transition-shadow">
-            <CardHeader>
-              <CardTitle className="text-base md:text-lg">Resumo de Tendências por IA</CardTitle>
-              <CardDescription>
-                Análise de tendências gerais de risco e melhorias.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm leading-relaxed">{trends?.riskSummary}</p>
-            </CardContent>
-          </Card>
-          <Card className="hover:shadow-md transition-shadow">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base md:text-lg">
-                <AlertTriangle className="text-destructive" /> Alertas Preditivos de Risco
-              </CardTitle>
-              <CardDescription>
-                Potenciais futuros problemas de segurança.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div>
-                <h4 className="font-semibold mb-1 text-sm">Problemas Previstos:</h4>
-                <p className="text-sm text-muted-foreground leading-relaxed">{forecast?.predictedIssues}</p>
-              </div>
-               <div>
-                <h4 className="font-semibold mb-1 text-sm">Justificativa:</h4>
-                <p className="text-sm text-muted-foreground leading-relaxed">{forecast?.reasoning}</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="hover:shadow-md transition-shadow">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base md:text-lg">
-                <BarChart2 className="text-primary" /> Ações Preventivas
-              </CardTitle>
-              <CardDescription>
-                Ações sugeridas para mitigar os problemas.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground leading-relaxed">{forecast?.preventativeActions}</p>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+          </Alert>
+        ) : (
+          <div className="space-y-4 md:space-y-6 w-full">
+            <div className="grid gap-4 md:gap-6 lg:grid-cols-2 w-full">
+              <Card className="hover:shadow-md transition-shadow min-w-0">
+                <CardHeader className="pb-3 px-4 pt-4">
+                  <CardTitle className="text-sm md:text-base truncate">
+                    Áreas Mais Inspecionadas
+                  </CardTitle>
+                  <CardDescription className="text-xs sm:text-sm">
+                    Principais áreas de inspeções
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-3 sm:p-6">
+                  <ChartContainer
+                    config={{
+                      count: {
+                        label: 'Inspeções',
+                        color: 'hsl(var(--primary))',
+                      },
+                    }}
+                    className="h-[200px] sm:h-[250px] md:h-[300px] w-full"
+                  >
+                    <BarChart 
+                      data={areaChartData} 
+                      accessibilityLayer
+                      margin={{ top: 5, right: 5, left: 5, bottom: 50 }}
+                    >
+                      <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                      <XAxis
+                        dataKey="area"
+                        tickLine={false}
+                        tickMargin={10}
+                        axisLine={false}
+                        fontSize={10}
+                        angle={-45}
+                        textAnchor="end"
+                        height={50}
+                        interval={0}
+                      />
+                      <YAxis 
+                        fontSize={10}
+                        tickLine={false}
+                        axisLine={false}
+                      />
+                      <Tooltip
+                        cursor={false}
+                        content={<ChartTooltipContent indicator="dot" />}
+                      />
+                      <Bar dataKey="count" fill="var(--color-count)" radius={[2, 2, 0, 0]} />
+                    </BarChart>
+                  </ChartContainer>
+                </CardContent>
+              </Card>
+
+              <Card className="hover:shadow-md transition-shadow min-w-0">
+                <CardHeader className="pb-3 px-4 pt-4">
+                  <CardTitle className="text-sm md:text-base truncate">
+                    Tipos de Risco
+                  </CardTitle>
+                  <CardDescription className="text-xs sm:text-sm">
+                    Principais riscos identificados
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-3 sm:p-6">
+                  <ChartContainer
+                    config={{
+                      count: {
+                        label: 'Inspeções',
+                        color: 'hsl(var(--accent))',
+                      },
+                    }}
+                    className="h-[200px] sm:h-[250px] md:h-[300px] w-full"
+                  >
+                    <BarChart 
+                      data={riskTypeChartData} 
+                      layout="vertical" 
+                      accessibilityLayer
+                      margin={{ top: 5, right: 20, left: 5, bottom: 5 }}
+                    >
+                      <CartesianGrid horizontal={false} strokeDasharray="3 3" />
+                      <YAxis 
+                        dataKey="riskType" 
+                        type="category" 
+                        tickLine={false} 
+                        tickMargin={8} 
+                        axisLine={false} 
+                        width={80}
+                        fontSize={9}
+                        tick={<CustomizedYAxisTick />}
+                      />
+                      <XAxis 
+                        type="number" 
+                        hide 
+                      />
+                      <Tooltip
+                        cursor={false}
+                        content={<ChartTooltipContent indicator="dot" />}
+                      />
+                      <Bar 
+                        dataKey="count" 
+                        fill="var(--color-count)" 
+                        radius={[0, 2, 2, 0]} 
+                      />
+                    </BarChart>
+                  </ChartContainer>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card className="hover:shadow-md transition-shadow w-full">
+              <CardHeader className="pb-3 px-4 pt-4">
+                <CardTitle className="text-sm md:text-base">
+                  Resumo de Tendências por IA
+                </CardTitle>
+                <CardDescription className="text-xs sm:text-sm">
+                  Análise inteligente de riscos
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="px-4 pb-4">
+                <p className="text-xs sm:text-sm leading-relaxed">{trends?.riskSummary}</p>
+              </CardContent>
+            </Card>
+
+            <div className="grid gap-4 md:gap-6 lg:grid-cols-2 w-full">
+              <Card className="hover:shadow-md transition-shadow min-w-0">
+                <CardHeader className="pb-3 px-4 pt-4">
+                  <CardTitle className="flex items-center gap-2 text-sm md:text-base">
+                    <AlertTriangle className="text-destructive h-4 w-4 flex-shrink-0" /> 
+                    <span className="truncate">Alertas Preditivos</span>
+                  </CardTitle>
+                  <CardDescription className="text-xs sm:text-sm">
+                    Problemas previstos
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3 px-4 pb-4">
+                  <div>
+                    <h4 className="font-semibold mb-2 text-xs sm:text-sm">Problemas Previstos:</h4>
+                    <p className="text-xs sm:text-sm leading-relaxed">{forecast?.predictedIssues}</p>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold mb-2 text-xs sm:text-sm">Justificativa:</h4>
+                    <p className="text-xs sm:text-sm leading-relaxed">{forecast?.reasoning}</p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="hover:shadow-md transition-shadow min-w-0">
+                <CardHeader className="pb-3 px-4 pt-4">
+                  <CardTitle className="flex items-center gap-2 text-sm md:text-base">
+                    <BarChart2 className="text-primary h-4 w-4 flex-shrink-0" /> 
+                    <span className="truncate">Ações Preventivas</span>
+                  </CardTitle>
+                  <CardDescription className="text-xs sm:text-sm">
+                    Medidas sugeridas
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="px-4 pb-4">
+                  <p className="text-xs sm:text-sm leading-relaxed">{forecast?.preventativeActions}</p>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
