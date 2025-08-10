@@ -16,7 +16,13 @@ import {
   Timestamp,
   updateDoc,
 } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { 
+  ref, 
+  uploadString, 
+  getDownloadURL,
+  deleteObject
+} from 'firebase/storage';
+import { db, storage } from '@/lib/firebase';
 import { analyzeTrends as analyzeTrendsFlow } from '@/ai/flows/trend-spotter';
 import { riskForecaster as riskForecasterFlow } from '@/ai/flows/risk-forecaster';
 import type { SafetyInspection, Auditor, Area, RiskType } from './types';
@@ -35,6 +41,21 @@ type DateFilters = {
 // Export types for use in client components
 export type { AnalyzeTrendsOutput } from '@/ai/flows/trend-spotter';
 export type { RiskForecasterOutput } from '@/ai/flows/risk-forecaster';
+
+async function uploadPhotos(inspectionId: string, photos: string[]): Promise<string[]> {
+    const photoURLs: string[] = [];
+    for (const photo of photos) {
+        if (photo.startsWith('data:')) { // It's a new base64 image
+            const storageRef = ref(storage, `inspections/${inspectionId}/${Date.now()}`);
+            const snapshot = await uploadString(storageRef, photo, 'data_url');
+            const downloadURL = await getDownloadURL(snapshot.ref);
+            photoURLs.push(downloadURL);
+        } else { // It's an existing URL
+            photoURLs.push(photo);
+        }
+    }
+    return photoURLs;
+}
 
 // Firestore collection getters
 async function getInspections(filters?: DateFilters): Promise<SafetyInspection[]> {
@@ -158,13 +179,17 @@ export async function fetchInspectionById(id: string) {
 
 export async function addInspection(data: z.infer<typeof inspectionSchema>) {
   try {
-    await addDoc(collection(db, 'inspections'), {
+    const docRef = await addDoc(collection(db, 'inspections'), {
       ...data,
       timestamp: new Date().toLocaleString('en-US'),
       date: new Date(data.date).toISOString().split('T')[0],
       deadline: new Date(data.deadline).toISOString().split('T')[0],
-      photos: data.photos || [],
+      photos: [],
     });
+
+    const photoURLs = await uploadPhotos(docRef.id, data.photos || []);
+    await updateDoc(docRef, { photos: photoURLs });
+
     revalidatePath('/inspections');
     revalidatePath('/dashboard');
     return { success: true, message: 'Inspeção adicionada com sucesso.' };
@@ -177,12 +202,32 @@ export async function addInspection(data: z.infer<typeof inspectionSchema>) {
 export async function updateInspection(id: string, data: z.infer<typeof inspectionSchema>) {
     try {
         const docRef = doc(db, 'inspections', id);
+        const currentDoc = await getDoc(docRef);
+        const currentPhotos = currentDoc.data()?.photos || [];
+
+        const photoURLs = await uploadPhotos(id, data.photos || []);
+
+        // Delete photos from storage that are no longer in the list
+        const photosToDelete = currentPhotos.filter((p: string) => !photoURLs.includes(p));
+        for(const photoUrl of photosToDelete) {
+          try {
+            const photoRef = ref(storage, photoUrl);
+            await deleteObject(photoRef);
+          } catch (error) {
+            // If the object does not exist, we can ignore the error
+            if (error instanceof Error && 'code' in error && (error as any).code !== 'storage/object-not-found') {
+              console.error('Error deleting photo from storage:', error);
+            }
+          }
+        }
+
         await updateDoc(docRef, {
             ...data,
             date: new Date(data.date).toISOString().split('T')[0],
             deadline: new Date(data.deadline).toISOString().split('T')[0],
-            photos: data.photos || [],
+            photos: photoURLs,
         });
+
         revalidatePath('/inspections');
         revalidatePath(`/inspections/${id}/edit`);
         revalidatePath('/dashboard');

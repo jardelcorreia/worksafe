@@ -51,7 +51,6 @@ export default function NewInspectionPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
-  const [photoFiles, setPhotoFiles] = useState<File[]>([]);
   const [auditors, setAuditors] = useState<Auditor[]>([]);
   const [areas, setAreas] = useState<Area[]>([]);
   const [riskTypes, setRiskTypes] = useState<RiskType[]>([]);
@@ -146,7 +145,6 @@ export default function NewInspectionPage() {
     }
 
     const newPreviews: string[] = [];
-    const newFiles: File[] = [];
 
     for (const file of files) {
       if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
@@ -157,18 +155,23 @@ export default function NewInspectionPage() {
           });
           continue;
       }
-      const compressedDataUrl = await compressImage(file);
-      newPreviews.push(compressedDataUrl);
-      newFiles.push(file);
+      try {
+        const compressedDataUrl = await compressImage(file);
+        newPreviews.push(compressedDataUrl);
+      } catch (error) {
+        toast({
+          title: 'Erro ao processar imagem',
+          description: `Falha ao processar o arquivo ${file.name}.`,
+          variant: 'destructive',
+        });
+      }
     }
     
     setPhotoPreviews((prev) => [...prev, ...newPreviews]);
-    setPhotoFiles((prev) => [...prev, ...newFiles]);
   };
 
   const handleRemovePhoto = (index: number) => {
     setPhotoPreviews((prev) => prev.filter((_, i) => i !== index));
-    setPhotoFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
 
