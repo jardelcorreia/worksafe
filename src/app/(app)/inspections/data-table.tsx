@@ -57,6 +57,7 @@ export function DataTable<TData, TValue>({
     React.useState<VisibilityState>({
       description: false,
       correctiveAction: false,
+      auditor: false,
     });
   const [rowSelection, setRowSelection] = React.useState({});
 
@@ -82,90 +83,98 @@ export function DataTable<TData, TValue>({
   return (
     <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
       <div className="flex items-center flex-wrap gap-4 p-4">
-        <Input
-          placeholder="Filtrar por tipo de risco..."
-          value={
-            (table.getColumn('riskType')?.getFilterValue() as string) ?? ''
-          }
-          onChange={(event) =>
-            table.getColumn('riskType')?.setFilterValue(event.target.value)
-          }
-          className="w-full sm:max-w-xs"
-        />
-        <Select
-          onValueChange={(value) =>
-            table.getColumn('potential')?.setFilterValue(value === 'all' ? undefined : value)
-          }
-        >
-          <SelectTrigger className="w-full sm:w-[180px]">
-            <SelectValue placeholder="Filtrar por Potencial" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos os Potenciais</SelectItem>
-            {PotentialLevels.map((level) => (
-              <SelectItem key={level} value={level}>
-                {level}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select
-          onValueChange={(value) =>
-            table.getColumn('status')?.setFilterValue(value === 'all' ? undefined : value)
-          }
-        >
-          <SelectTrigger className="w-full sm:w-[180px]">
-            <SelectValue placeholder="Filtrar por Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos os Status</SelectItem>
-            {StatusLevels.map((level) => (
-              <SelectItem key={level} value={level}>
-                {level}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex-grow min-w-[200px] sm:flex-grow-0">
+          <Input
+            placeholder="Filtrar por tipo de risco..."
+            value={
+              (table.getColumn('riskType')?.getFilterValue() as string) ?? ''
+            }
+            onChange={(event) =>
+              table.getColumn('riskType')?.setFilterValue(event.target.value)
+            }
+            className="w-full"
+          />
+        </div>
+        <div className="flex-grow min-w-[150px] sm:flex-grow-0">
+          <Select
+            onValueChange={(value) =>
+              table.getColumn('potential')?.setFilterValue(value === 'all' ? undefined : value)
+            }
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Filtrar por Potencial" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos os Potenciais</SelectItem>
+              {PotentialLevels.map((level) => (
+                <SelectItem key={level} value={level}>
+                  {level}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex-grow min-w-[150px] sm:flex-grow-0">
+          <Select
+            onValueChange={(value) =>
+              table.getColumn('status')?.setFilterValue(value === 'all' ? undefined : value)
+            }
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Filtrar por Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos os Status</SelectItem>
+              {StatusLevels.map((level) => (
+                <SelectItem key={level} value={level}>
+                  {level}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-auto">
-              Colunas <ChevronDown className="ml-2 h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {table
-              .getAllColumns()
-              .filter((column) => column.getCanHide())
-              .map((column) => {
-                // Manually map IDs to friendly names
-                const columnNames: { [key: string]: string } = {
-                  date: 'Data',
-                  area: 'Área',
-                  riskType: 'Tipo de Risco',
-                  description: 'Descrição',
-                  correctiveAction: 'Ação Corretiva',
-                  potential: 'Potencial',
-                  status: 'Status',
-                  auditor: 'Auditor',
-                };
-                return (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    className="capitalize"
-                    checked={column.getIsVisible()}
-                    onCheckedChange={(value) =>
-                      column.toggleVisibility(!!value)
-                    }
-                  >
-                    {columnNames[column.id] || column.id}
-                  </DropdownMenuCheckboxItem>
-                );
-              })}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="ml-auto">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">
+                Colunas <ChevronDown className="ml-2 h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {table
+                .getAllColumns()
+                .filter((column) => column.getCanHide())
+                .map((column) => {
+                  // Manually map IDs to friendly names
+                  const columnNames: { [key: string]: string } = {
+                    date: 'Data',
+                    area: 'Área',
+                    riskType: 'Tipo de Risco',
+                    description: 'Descrição',
+                    correctiveAction: 'Ação Corretiva',
+                    potential: 'Potencial',
+                    status: 'Status',
+                    auditor: 'Auditor',
+                  };
+                  return (
+                    <DropdownMenuCheckboxItem
+                      key={column.id}
+                      className="capitalize"
+                      checked={column.getIsVisible()}
+                      onCheckedChange={(value) =>
+                        column.toggleVisibility(!!value)
+                      }
+                    >
+                      {columnNames[column.id] || column.id}
+                    </DropdownMenuCheckboxItem>
+                  );
+                })}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
-      <div className="border-t">
+      <div className="border-t overflow-x-auto">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

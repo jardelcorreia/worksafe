@@ -179,6 +179,7 @@ export const columns: ColumnDef<SafetyInspection>[] = [
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          className="whitespace-nowrap"
         >
           Data
           <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -293,7 +294,16 @@ export const columns: ColumnDef<SafetyInspection>[] = [
   },
   {
     accessorKey: 'status',
-    header: 'Status da Ação Corretiva',
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+        className="whitespace-nowrap"
+      >
+        Status
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
     cell: ({ row }) => {
       const status = row.getValue('status') as string;
       return (
