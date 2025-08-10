@@ -55,20 +55,20 @@ function DetailsModal({ inspection, children }: { inspection: SafetyInspection, 
           <DialogTitle>Detalhes da Inspeção</DialogTitle>
         </DialogHeader>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-          <div>
+          <div className="md:col-span-1">
             <strong>Data:</strong>{' '}
             {new Date(inspection.date).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
           </div>
-          <div>
+          <div className="md:col-span-1">
             <strong>Área:</strong> {inspection.area}
           </div>
-          <div>
+          <div className="md:col-span-1">
             <strong>Auditor:</strong> {inspection.auditor}
           </div>
-          <div>
+          <div className="md:col-span-1">
             <strong>Tipo de Risco:</strong> {inspection.riskType}
           </div>
-          <div>
+          <div className="md:col-span-1">
             <strong>Potencial:</strong>{' '}
             <Badge
                 variant="outline"
@@ -81,7 +81,7 @@ function DetailsModal({ inspection, children }: { inspection: SafetyInspection, 
                 {inspection.potential}
             </Badge>
           </div>
-          <div>
+          <div className="md:col-span-1">
             <strong>Status da Ação Corretiva:</strong>{' '}
             <Badge
                 className={cn({
@@ -197,6 +197,27 @@ export const columns: ColumnDef<SafetyInspection>[] = [
   {
     accessorKey: 'riskType',
     header: 'Tipo de Risco',
+    cell: ({ row }) => {
+      const riskType = row.getValue('riskType') as string;
+      if (riskType.length <= 30) {
+        return <span>{riskType}</span>;
+      }
+      return (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="cursor-pointer">{`${riskType.substring(
+                0,
+                30
+              )}...`}</span>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p className="max-w-xs">{riskType}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      );
+    },
   },
   {
     accessorKey: 'description',
