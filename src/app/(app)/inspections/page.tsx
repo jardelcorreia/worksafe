@@ -2,8 +2,7 @@ import Link from 'next/link';
 import { PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { fetchInspections } from '@/lib/actions';
-import { columns } from './columns';
-import { DataTable } from './data-table';
+import { columns, DataTable } from './data-table';
 
 export default async function InspectionsPage() {
   const data = await fetchInspections();
