@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo, useEffect, useState } from 'react';
@@ -160,7 +161,7 @@ export function DashboardClient() {
               className="w-full sm:w-auto whitespace-nowrap h-11 px-4 font-medium"
               size="default"
             >
-              {loading ? (
+              {loading && analysisPerformed ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin flex-shrink-0" />
               ) : (
                 <Sparkles className="mr-2 h-4 w-4 flex-shrink-0" />
@@ -228,7 +229,12 @@ export function DashboardClient() {
           </Card>
         </div>
 
-        {loading ? (
+        {loading && !analysisPerformed ? (
+          <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 md:p-12">
+            <Loader2 className="h-8 w-8 animate-spin text-primary mb-3" />
+            <p className="text-base md:text-lg text-center">Carregando inspeções...</p>
+          </div>
+        ) : loading && analysisPerformed ? (
           <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 md:p-12">
             <Loader2 className="h-8 w-8 animate-spin text-primary mb-3" />
             <p className="text-base md:text-lg text-center">Analisando dados...</p>

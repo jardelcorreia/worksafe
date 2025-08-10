@@ -3,7 +3,7 @@
 
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import { DateRange } from 'react-day-picker';
-import { addDays, isSameDay } from 'date-fns';
+import { addDays } from 'date-fns';
 import {
     analyzeTrends,
     riskForecaster,
@@ -19,7 +19,7 @@ interface DashboardContextType {
     inspections: SafetyInspection[];
     loading: boolean;
     hasData: boolean;
-    analysisPerformed: boolean;
+    analysisPerformed: boolean; // Novo estado para controlar se a análise foi feita
     date: DateRange | undefined;
     setDate: (date: DateRange | undefined) => void;
     getAIFeatures: (filterDate?: DateRange) => Promise<void>;
@@ -27,21 +27,24 @@ interface DashboardContextType {
 
 const DashboardContext = createContext<DashboardContextType | undefined>(undefined);
 
-const CACHE_KEY = 'dashboardAnalysisCache';
-
 export function DashboardProvider({ children }: { children: ReactNode }) {
     const [trends, setTrends] = useState<AnalyzeTrendsOutput | null>(null);
     const [forecast, setForecast] = useState<RiskForecasterOutput | null>(null);
     const [inspections, setInspections] = useState<SafetyInspection[]>([]);
-    const [loading, setLoading] = useState(true); // Start with loading true for initial fetch
+    const [loading, setLoading] = useState(false); // Inicia como falso
     const [hasData, setHasData] = useState(false);
-    const [analysisPerformed, setAnalysisPerformed] = useState(false);
+    const [analysisPerformed, setAnalysisPerformed] = useState(false); // Novo estado
     const [date, setDate] = useState<DateRange | undefined>({
         from: addDays(new Date(), -30),
         to: new Date(),
     });
 
     const getInspectionsForDateRange = useCallback(async (filterDate?: DateRange) => {
+        setLoading(true);
+        // Limpa os resultados da IA sempre que o período de data muda
+        setTrends(null);
+        setForecast(null);
+        setAnalysisPerformed(false);
         try {
             const inspectionsData = await fetchInspections({
                 from: filterDate?.from,
@@ -53,95 +56,46 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
             console.error('Falha ao buscar inspeções:', error);
             setInspections([]);
             setHasData(false);
+        } finally {
+            setLoading(false);
         }
     }, []);
     
-    // Effect to load initial data and check cache
+    // Efeito para buscar os dados de inspeção quando o período de data muda
     useEffect(() => {
-        const loadDashboard = async () => {
-            setLoading(true);
-            
-            // Try to load from cache first
-            try {
-                const cachedData = localStorage.getItem(CACHE_KEY);
-                if (cachedData && date?.from && date?.to) {
-                    const { trends, forecast, from, to } = JSON.parse(cachedData);
-                    // Check if cache is for the same date range
-                    if (isSameDay(new Date(from), date.from) && isSameDay(new Date(to), date.to)) {
-                        setTrends(trends);
-                        setForecast(forecast);
-                        setAnalysisPerformed(true);
-                    } else {
-                        // Clear cache if dates are different
-                        localStorage.removeItem(CACHE_KEY);
-                        setAnalysisPerformed(false);
-                        setTrends(null);
-                        setForecast(null);
-                    }
-                }
-            } catch (e) {
-                console.error("Failed to read from localStorage", e);
-                setAnalysisPerformed(false);
-            }
-
-            await getInspectionsForDateRange(date);
-            setLoading(false);
-        };
-        
-        loadDashboard();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [date]);
+        getInspectionsForDateRange(date);
+    }, [date, getInspectionsForDateRange]);
 
 
     const getAIFeatures = useCallback(async (filterDate?: DateRange) => {
+        // Usa as inspeções já carregadas que correspondem ao período
+        if (inspections.length === 0) {
+            setHasData(false);
+            setTrends(null);
+            setForecast(null);
+            setAnalysisPerformed(true); // Marca que a tentativa foi feita
+            return;
+        }
+
         setLoading(true);
         setAnalysisPerformed(true);
         setTrends(null);
         setForecast(null);
         
         try {
-            const inspectionsData = await fetchInspections({
+            setHasData(true);
+            const trendData = await analyzeTrends({
                 from: filterDate?.from,
                 to: filterDate?.to
             });
-            setInspections(inspectionsData);
+            setTrends(trendData);
 
-            if (inspectionsData.length > 0) {
-                setHasData(true);
-                const trendData = await analyzeTrends({
+            if (trendData?.riskSummary) {
+                const forecastData = await riskForecaster(trendData.riskSummary, {
                     from: filterDate?.from,
                     to: filterDate?.to
                 });
-                setTrends(trendData);
-
-                if (trendData?.riskSummary) {
-                    const forecastData = await riskForecaster(trendData.riskSummary, {
-                        from: filterDate?.from,
-                        to: filterDate?.to
-                    });
-                    setForecast(forecastData);
-
-                    // Cache the new results
-                    try {
-                        const cachePayload = {
-                            trends: trendData,
-                            forecast: forecastData,
-                            from: filterDate?.from,
-                            to: filterDate?.to
-                        };
-                        localStorage.setItem(CACHE_KEY, JSON.stringify(cachePayload));
-                    } catch (e) {
-                         console.error("Failed to write to localStorage", e);
-                    }
-                }
-            } else {
-                setHasData(false);
-                // Clear cache if no data found
-                 try {
-                    localStorage.removeItem(CACHE_KEY);
-                } catch(e) {
-                    console.error("Failed to remove from localStorage", e);
-                }
+                setForecast(forecastData);
             }
         } catch (error) {
             console.error('Falha ao buscar dados para o dashboard:', error);
@@ -149,7 +103,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [inspections]);
 
 
     const value = {
