@@ -76,8 +76,33 @@ interface DataTableProps<TData, TValue> {
   data: TData[];
 }
 
+function ImageDialog({ src, open, onOpenChange }: { src: string; open: boolean; onOpenChange: (open: boolean) => void }) {
+    if (!src) return null;
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-4xl p-0 border-0 bg-transparent shadow-none">
+          <Image
+            src={src}
+            alt="Foto da inspeção ampliada"
+            width={1200}
+            height={800}
+            className="rounded-lg object-contain w-full h-auto"
+          />
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
 function DetailsModal({ inspection, children }: { inspection: SafetyInspection, children: React.ReactNode }) {
-  return (
+    const [expandedImage, setExpandedImage] = React.useState<string | null>(null);
+
+    const handleOpenChange = (open: boolean) => {
+        if (!open) {
+          setExpandedImage(null);
+        }
+    };
+
+    return (
     <Dialog>
       <DialogTrigger asChild>
         {children}
@@ -152,19 +177,25 @@ function DetailsModal({ inspection, children }: { inspection: SafetyInspection, 
               <Carousel className="w-full mt-2">
                 <CarouselContent>
                   {inspection.photos.map((photo, index) => (
-                    <CarouselItem key={index}>
-                      <Image
-                        src={photo}
-                        alt={`Foto da inspeção ${index + 1}`}
-                        width={600}
-                        height={400}
-                        className="rounded-md object-cover w-full aspect-video"
-                      />
+                    <CarouselItem key={index} className="basis-1/2 md:basis-1/3">
+                        <button onClick={() => setExpandedImage(photo)} className="w-full h-full aspect-video rounded-md overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary">
+                            <Image
+                                src={photo}
+                                alt={`Foto da inspeção ${index + 1}`}
+                                width={200}
+                                height={150}
+                                className="object-cover w-full h-full transition-transform hover:scale-105"
+                            />
+                        </button>
                     </CarouselItem>
                   ))}
                 </CarouselContent>
-                <CarouselPrevious />
-                <CarouselNext />
+                {inspection.photos.length > 3 && (
+                    <>
+                        <CarouselPrevious />
+                        <CarouselNext />
+                    </>
+                )}
               </Carousel>
             </div>
           )}
@@ -172,6 +203,9 @@ function DetailsModal({ inspection, children }: { inspection: SafetyInspection, 
         <DialogClose asChild>
             <Button type="button" variant="outline" className="mt-4 w-full">Fechar</Button>
         </DialogClose>
+        {expandedImage && (
+            <ImageDialog src={expandedImage} open={!!expandedImage} onOpenChange={handleOpenChange} />
+        )}
       </DialogContent>
     </Dialog>
   );
@@ -412,6 +446,11 @@ export function DataTable<TData, TValue>({
       columnFilters,
       columnVisibility,
     },
+    initialState: {
+        pagination: {
+            pageSize: 5
+        }
+    }
   });
 
   const filteredInspections = table.getRowModel().rows.map(row => row.original as SafetyInspection);
