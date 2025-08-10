@@ -81,6 +81,9 @@ function ImageDialog({ src, open, onOpenChange }: { src: string; open: boolean; 
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-4xl p-0 border-0 bg-transparent shadow-none">
+          <DialogHeader>
+              <DialogTitle className="sr-only">Imagem da Inspeção Ampliada</DialogTitle>
+          </DialogHeader>
           <Image
             src={src}
             alt="Foto da inspeção ampliada"
@@ -732,3 +735,5 @@ export const columns: ColumnDef<SafetyInspection>[] = [
     cell: ActionsCell,
   },
 ];
+
+    
