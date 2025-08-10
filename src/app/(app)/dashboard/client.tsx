@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   AlertTriangle,
   BarChart2,
@@ -56,7 +56,7 @@ export function DashboardClient() {
     to: new Date(),
   });
 
-  async function getAIFeatures(filterDate?: DateRange) {
+  const getAIFeatures = useCallback(async (filterDate?: DateRange) => {
       setLoading(true);
       try {
         const inspectionsData = await fetchInspections({
@@ -84,15 +84,16 @@ export function DashboardClient() {
           setHasData(false);
         }
       } catch (error) {
-        console.error('Erro ao obter recursos de IA:', error);
+        console.error('Falha ao buscar inspeções do Firestore:', error);
       } finally {
         setLoading(false);
       }
-    }
+    }, []);
 
   useEffect(() => {
     getAIFeatures(date);
-  }, [date]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [getAIFeatures]);
 
   const totalInspections = inspections.length;
   const resolvedInspections = inspections.filter(
