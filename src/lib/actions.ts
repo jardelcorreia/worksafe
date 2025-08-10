@@ -59,25 +59,32 @@ async function uploadPhotos(inspectionId: string, photos: string[]): Promise<str
 
 // Firestore collection getters
 async function getInspections(filters?: DateFilters): Promise<SafetyInspection[]> {
-  const queryConstraints = [orderBy('date', 'desc')];
+  try {
+    const queryConstraints = [orderBy('date', 'desc')];
 
-  if (filters?.from) {
-      queryConstraints.push(where('date', '>=', Timestamp.fromDate(filters.from).toDate().toISOString().split('T')[0]));
+    if (filters?.from) {
+        queryConstraints.push(where('date', '>=', Timestamp.fromDate(filters.from).toDate().toISOString().split('T')[0]));
+    }
+    if (filters?.to) {
+        queryConstraints.push(where('date', '<=', Timestamp.fromDate(filters.to).toDate().toISOString().split('T')[0]));
+    }
+
+    const inspectionsCol = query(
+      collection(db, 'inspections'),
+      ...queryConstraints
+    );
+
+    const inspectionSnapshot = await getDocs(inspectionsCol);
+    return inspectionSnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    })) as SafetyInspection[];
+  } catch (error) {
+    console.error('Falha ao buscar inspeções do Firestore:', error);
+    // Em um ambiente de produção, você pode querer lançar o erro
+    // ou retornar um array vazio para evitar que a página quebre.
+    return [];
   }
-  if (filters?.to) {
-      queryConstraints.push(where('date', '<=', Timestamp.fromDate(filters.to).toDate().toISOString().split('T')[0]));
-  }
-
-  const inspectionsCol = query(
-    collection(db, 'inspections'),
-    ...queryConstraints
-  );
-
-  const inspectionSnapshot = await getDocs(inspectionsCol);
-  return inspectionSnapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  })) as SafetyInspection[];
 }
 
 async function getAuditors(): Promise<Auditor[]> {
@@ -324,3 +331,5 @@ export async function deleteRiskType(id: string) {
         return { success: false, message: 'Falha ao excluir tipo de risco.' };
     }
 }
+
+    
