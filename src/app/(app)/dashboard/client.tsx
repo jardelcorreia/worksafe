@@ -13,7 +13,7 @@ import {
   Clock,
   Calendar as CalendarIcon,
 } from 'lucide-react';
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip } from 'recharts';
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Text } from 'recharts';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
@@ -37,6 +37,20 @@ import {
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useDashboard } from '@/contexts/DashboardContext';
 import { cn } from '@/lib/utils';
+
+
+const CustomizedYAxisTick = (props: any) => {
+    const { x, y, payload } = props;
+    const value = payload.value;
+    const a = 15;
+    const truncatedValue = value.length > a ? `${value.substring(0, a)}...` : value;
+
+    return (
+        <Text {...props} x={x} y={y} width={props.width} title={value}>
+            {truncatedValue}
+        </Text>
+    );
+};
 
 
 export function DashboardClient() {
@@ -240,7 +254,15 @@ export function DashboardClient() {
               >
                 <BarChart data={riskTypeChartData} layout="vertical" accessibilityLayer>
                   <CartesianGrid horizontal={false} />
-                  <YAxis dataKey="riskType" type="category" tickLine={false} tickMargin={10} axisLine={false} width={80} />
+                  <YAxis 
+                    dataKey="riskType" 
+                    type="category" 
+                    tickLine={false} 
+                    tickMargin={10} 
+                    axisLine={false} 
+                    width={80}
+                    tick={<CustomizedYAxisTick />}
+                  />
                   <XAxis type="number" hide />
                   <Tooltip
                     cursor={false}
@@ -297,4 +319,5 @@ export function DashboardClient() {
   );
 }
 
+    
     
