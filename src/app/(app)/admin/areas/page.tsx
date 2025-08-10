@@ -139,13 +139,13 @@ export default function AreasPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Nome</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
+                  <TableHead className="text-right w-[100px]">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {areas.map((area) => (
                   <TableRow key={area.id}>
-                    <TableCell>{area.name}</TableCell>
+                    <TableCell className="font-medium">{area.name}</TableCell>
                     <TableCell className="text-right">
                       <Button
                         variant="ghost"

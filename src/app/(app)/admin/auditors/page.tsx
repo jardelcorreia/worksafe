@@ -139,13 +139,13 @@ export default function AuditorsPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Nome</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
+                  <TableHead className="text-right w-[100px]">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {auditors.map((auditor) => (
                   <TableRow key={auditor.id}>
-                    <TableCell>{auditor.name}</TableCell>
+                    <TableCell className="font-medium">{auditor.name}</TableCell>
                     <TableCell className="text-right">
                       <Button
                         variant="ghost"

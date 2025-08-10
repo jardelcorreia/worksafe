@@ -180,11 +180,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <DashboardProvider>
             <header className="flex h-14 items-center gap-4 border-b bg-background/50 backdrop-blur-sm px-4 lg:h-[60px] lg:px-6 sticky top-0 z-30">
             <SidebarTrigger className="md:hidden" />
-            <h1 className="text-xl md:text-2xl font-semibold font-headline flex-1">
+            <h1 className="text-lg md:text-xl font-semibold font-headline flex-1">
                 {currentItem?.label || 'Dashboard'}
             </h1>
             </header>
-            <main className="flex-1 p-4 md:p-6">{children}</main>
+            <main className="flex-1 p-4 sm:p-6">{children}</main>
         </DashboardProvider>
       </SidebarInset>
     </SidebarProvider>

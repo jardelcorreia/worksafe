@@ -246,10 +246,10 @@ export function DashboardClient() {
             <div className="grid gap-4 md:gap-6 lg:grid-cols-2 w-full">
               <Card className="hover:shadow-md transition-shadow min-w-0">
                 <CardHeader className="pb-3 px-4 pt-4">
-                  <CardTitle className="text-sm md:text-base truncate">
+                  <CardTitle className="truncate">
                     Áreas Mais Inspecionadas
                   </CardTitle>
-                  <CardDescription className="text-xs sm:text-sm">
+                  <CardDescription>
                     Principais áreas de inspeções
                   </CardDescription>
                 </CardHeader>
@@ -297,10 +297,10 @@ export function DashboardClient() {
 
               <Card className="hover:shadow-md transition-shadow min-w-0">
                 <CardHeader className="pb-3 px-4 pt-4">
-                  <CardTitle className="text-sm md:text-base truncate">
+                  <CardTitle className="truncate">
                     Tipos de Risco
                   </CardTitle>
-                  <CardDescription className="text-xs sm:text-sm">
+                  <CardDescription>
                     Principais riscos identificados
                   </CardDescription>
                 </CardHeader>
@@ -352,53 +352,53 @@ export function DashboardClient() {
 
             <Card className="hover:shadow-md transition-shadow w-full">
               <CardHeader className="pb-3 px-4 pt-4">
-                <CardTitle className="text-sm md:text-base">
+                <CardTitle>
                   Resumo de Tendências por IA
                 </CardTitle>
-                <CardDescription className="text-xs sm:text-sm">
+                <CardDescription>
                   Análise inteligente de riscos
                 </CardDescription>
               </CardHeader>
               <CardContent className="px-4 pb-4">
-                <p className="text-xs sm:text-sm leading-relaxed">{trends?.riskSummary}</p>
+                <p className="text-sm leading-relaxed">{trends?.riskSummary}</p>
               </CardContent>
             </Card>
 
             <div className="grid gap-4 md:gap-6 lg:grid-cols-2 w-full">
               <Card className="hover:shadow-md transition-shadow min-w-0">
                 <CardHeader className="pb-3 px-4 pt-4">
-                  <CardTitle className="flex items-center gap-2 text-sm md:text-base">
+                  <CardTitle className="flex items-center gap-2">
                     <AlertTriangle className="text-destructive h-4 w-4 flex-shrink-0" /> 
                     <span className="truncate">Alertas Preditivos</span>
                   </CardTitle>
-                  <CardDescription className="text-xs sm:text-sm">
+                  <CardDescription>
                     Problemas previstos
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3 px-4 pb-4">
                   <div>
-                    <h4 className="font-semibold mb-2 text-xs sm:text-sm">Problemas Previstos:</h4>
-                    <p className="text-xs sm:text-sm leading-relaxed">{forecast?.predictedIssues}</p>
+                    <h4 className="font-semibold mb-2 text-sm">Problemas Previstos:</h4>
+                    <p className="text-sm leading-relaxed">{forecast?.predictedIssues}</p>
                   </div>
                   <div>
-                    <h4 className="font-semibold mb-2 text-xs sm:text-sm">Justificativa:</h4>
-                    <p className="text-xs sm:text-sm leading-relaxed">{forecast?.reasoning}</p>
+                    <h4 className="font-semibold mb-2 text-sm">Justificativa:</h4>
+                    <p className="text-sm leading-relaxed">{forecast?.reasoning}</p>
                   </div>
                 </CardContent>
               </Card>
 
               <Card className="hover:shadow-md transition-shadow min-w-0">
                 <CardHeader className="pb-3 px-4 pt-4">
-                  <CardTitle className="flex items-center gap-2 text-sm md:text-base">
+                  <CardTitle className="flex items-center gap-2">
                     <BarChart2 className="text-primary h-4 w-4 flex-shrink-0" /> 
                     <span className="truncate">Ações Preventivas</span>
                   </CardTitle>
-                  <CardDescription className="text-xs sm:text-sm">
+                  <CardDescription>
                     Medidas sugeridas
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="px-4 pb-4">
-                  <p className="text-xs sm:text-sm leading-relaxed">{forecast?.preventativeActions}</p>
+                  <p className="text-sm leading-relaxed">{forecast?.preventativeActions}</p>
                 </CardContent>
               </Card>
             </div>

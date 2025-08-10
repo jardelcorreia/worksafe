@@ -49,10 +49,15 @@ export function DataTable<TData, TValue>({
   columns,
   data,
 }: DataTableProps<TData, TValue>) {
-  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [sorting, setSorting] = React.useState<SortingState>([
+    { id: 'date', desc: true }
+  ]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
+    React.useState<VisibilityState>({
+      description: false,
+      correctiveAction: false,
+    });
   const [rowSelection, setRowSelection] = React.useState({});
 
   const table = useReactTable({
@@ -85,7 +90,7 @@ export function DataTable<TData, TValue>({
           onChange={(event) =>
             table.getColumn('riskType')?.setFilterValue(event.target.value)
           }
-          className="w-full sm:w-auto sm:max-w-sm"
+          className="w-full sm:max-w-xs"
         />
         <Select
           onValueChange={(value) =>
@@ -133,6 +138,17 @@ export function DataTable<TData, TValue>({
               .getAllColumns()
               .filter((column) => column.getCanHide())
               .map((column) => {
+                // Manually map IDs to friendly names
+                const columnNames: { [key: string]: string } = {
+                  date: 'Data',
+                  area: 'Área',
+                  riskType: 'Tipo de Risco',
+                  description: 'Descrição',
+                  correctiveAction: 'Ação Corretiva',
+                  potential: 'Potencial',
+                  status: 'Status',
+                  auditor: 'Auditor',
+                };
                 return (
                   <DropdownMenuCheckboxItem
                     key={column.id}
@@ -142,7 +158,7 @@ export function DataTable<TData, TValue>({
                       column.toggleVisibility(!!value)
                     }
                   >
-                    {column.id === 'riskType' ? 'Tipo de Risco' : column.id}
+                    {columnNames[column.id] || column.id}
                   </DropdownMenuCheckboxItem>
                 );
               })}

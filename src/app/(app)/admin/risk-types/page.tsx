@@ -129,7 +129,7 @@ export default function RiskTypesPage() {
               />
               <Button type="submit" disabled={form.formState.isSubmitting} className="w-full sm:w-auto">
                 <PlusCircle className="mr-2 h-4 w-4" />
-                {form.formState.isSubmitting ? 'Adicionando...' : 'Adicionar Tipo de Risco'}
+                {form.formState.isSubmitting ? 'Adicionando...' : 'Adicionar Tipo'}
               </Button>
             </form>
           </Form>
@@ -139,13 +139,13 @@ export default function RiskTypesPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Nome</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
+                  <TableHead className="text-right w-[100px]">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {riskTypes.map((riskType) => (
                   <TableRow key={riskType.id}>
-                    <TableCell>{riskType.name}</TableCell>
+                    <TableCell className="font-medium">{riskType.name}</TableCell>
                     <TableCell className="text-right">
                       <Button
                         variant="ghost"
