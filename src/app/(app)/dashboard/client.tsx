@@ -241,7 +241,7 @@ export function DashboardClient() {
               >
                 <BarChart data={riskTypeChartData} layout="vertical" accessibilityLayer>
                   <CartesianGrid horizontal={false} />
-                  <YAxis dataKey="riskType" type="category" tickLine={false} tickMargin={10} axisLine={false} width={150} />
+                  <YAxis dataKey="riskType" type="category" tickLine={false} tickMargin={10} axisLine={false} width={120} />
                   <XAxis type="number" hide />
                   <Tooltip
                     cursor={false}
