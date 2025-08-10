@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import {
   AlertTriangle,
   BarChart2,
@@ -42,11 +42,20 @@ import { cn } from '@/lib/utils';
 const CustomizedYAxisTick = (props: any) => {
     const { x, y, payload } = props;
     const value = payload.value;
-    const a = 15;
-    const truncatedValue = value.length > a ? `${value.substring(0, a)}...` : value;
+    const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+        const checkMobile = () => setIsMobile(window.innerWidth < 768);
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
+
+    const maxLength = isMobile ? 10 : 15;
+    const truncatedValue = value.length > maxLength ? `${value.substring(0, maxLength)}...` : value;
 
     return (
-        <Text {...props} x={x} y={y} width={props.width} title={value}>
+        <Text {...props} x={x} y={y} width={props.width} title={value} fontSize={11}>
             {truncatedValue}
         </Text>
     );
@@ -93,34 +102,47 @@ export function DashboardClient() {
                 id="date"
                 variant={'outline'}
                 className={cn(
-                    'w-full sm:w-[300px] justify-start text-left font-normal',
+                    'w-full sm:w-auto sm:max-w-xs justify-start text-left font-normal',
                     !date && 'text-muted-foreground'
                 )}
                 >
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {date?.from ? (
-                    date.to ? (
-                    <>
-                        {format(date.from, 'LLL dd, y', { locale: ptBR })} -{' '}
-                        {format(date.to, 'LLL dd, y', { locale: ptBR })}
-                    </>
+                <span className="truncate">
+                    {date?.from ? (
+                        date.to ? (
+                        <>
+                            {format(date.from, 'dd/MM/yy', { locale: ptBR })} -{' '}
+                            {format(date.to, 'dd/MM/yy', { locale: ptBR })}
+                        </>
+                        ) : (
+                        format(date.from, 'LLL dd, y', { locale: ptBR })
+                        )
                     ) : (
-                    format(date.from, 'LLL dd, y', { locale: ptBR })
-                    )
-                ) : (
-                    <span>Escolha um período</span>
-                )}
+                        <span>Escolha um período</span>
+                    )}
+                </span>
                 </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
                 <Calendar
-                initialFocus
-                mode="range"
-                defaultMonth={date?.from}
-                selected={date}
-                onSelect={setDate}
-                numberOfMonths={2}
-                locale={ptBR}
+                    initialFocus
+                    mode="range"
+                    defaultMonth={date?.from}
+                    selected={date}
+                    onSelect={setDate}
+                    numberOfMonths={1}
+                    className="md:hidden"
+                    locale={ptBR}
+                />
+                 <Calendar
+                    initialFocus
+                    mode="range"
+                    defaultMonth={date?.from}
+                    selected={date}
+                    onSelect={setDate}
+                    numberOfMonths={2}
+                    className="hidden md:block"
+                    locale={ptBR}
                 />
             </PopoverContent>
             </Popover>
@@ -131,7 +153,7 @@ export function DashboardClient() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
+        <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Total de Inspeções
@@ -141,54 +163,55 @@ export function DashboardClient() {
           <CardContent>
             <div className="text-2xl font-bold">{totalInspections}</div>
             <p className="text-xs text-muted-foreground">
-              Total de inspeções registradas no período
+              Total de inspeções no período
             </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Inspeções Resolvidas
             </CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
+            <CheckCircle2 className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{resolvedInspections}</div>
+            <div className="text-2xl font-bold text-green-600">{resolvedInspections}</div>
             <p className="text-xs text-muted-foreground">
               {totalInspections > 0 ? ((resolvedInspections / totalInspections) * 100).toFixed(1) : 0}% resolvidas
             </p>
           </CardContent>
         </Card>
-         <Card>
+         <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Inspeções Pendentes</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
+            <Clock className="h-4 w-4 text-orange-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{pendingInspections}</div>
+            <div className="text-2xl font-bold text-orange-600">{pendingInspections}</div>
              <p className="text-xs text-muted-foreground">
-              Inspeções com status "Em Andamento"
+              Inspeções "Em Andamento"
             </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Alto Potencial</CardTitle>
-            <ShieldAlert className="h-4 w-4 text-muted-foreground" />
+            <ShieldAlert className="h-4 w-4 text-red-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{highPotentialInspections}</div>
+            <div className="text-2xl font-bold text-red-600">{highPotentialInspections}</div>
             <p className="text-xs text-muted-foreground">
-              Inspeções classificadas como "Alto"
+              Inspeções com risco "Alto"
             </p>
           </CardContent>
         </Card>
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center rounded-lg border border-dashed p-12">
+        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="ml-4 text-lg">Analisando dados...</p>
+          <p className="mt-4 text-lg font-medium">Analisando dados...</p>
+          <p className="text-sm text-muted-foreground">Isso pode levar alguns segundos.</p>
         </div>
       ) : !hasData ? (
         <Alert>
@@ -200,11 +223,11 @@ export function DashboardClient() {
         </Alert>
       ) : (
         <div className="grid gap-6 lg:grid-cols-2">
-          <Card>
+          <Card className="hover:shadow-md transition-shadow">
             <CardHeader>
-              <CardTitle>Áreas com Maior Frequência de Inspeções</CardTitle>
+              <CardTitle className="text-base md:text-lg">Áreas com Maior Frequência</CardTitle>
               <CardDescription>
-                Principais áreas onde ocorrem inspeções de segurança.
+                Principais áreas onde ocorrem inspeções.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -217,15 +240,19 @@ export function DashboardClient() {
                 }}
                 className="h-[300px] w-full"
               >
-                <BarChart data={areaChartData} accessibilityLayer>
+                <BarChart data={areaChartData} accessibilityLayer margin={{ bottom: 50 }}>
                   <CartesianGrid vertical={false} />
                   <XAxis
                     dataKey="area"
                     tickLine={false}
                     tickMargin={10}
                     axisLine={false}
+                    angle={-45}
+                    textAnchor="end"
+                    interval={0}
+                    fontSize={12}
                   />
-                  <YAxis />
+                  <YAxis fontSize={12} />
                   <Tooltip
                     cursor={false}
                     content={<ChartTooltipContent indicator="dot" />}
@@ -235,11 +262,11 @@ export function DashboardClient() {
               </ChartContainer>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="hover:shadow-md transition-shadow">
             <CardHeader>
-              <CardTitle>Tipos de Risco Mais Frequentes</CardTitle>
+              <CardTitle className="text-base md:text-lg">Tipos de Risco Mais Frequentes</CardTitle>
               <CardDescription>
-                Principais tipos de riscos identificados nas inspeções.
+                Principais riscos identificados nas inspeções.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -252,15 +279,16 @@ export function DashboardClient() {
                 }}
                 className="h-[300px] w-full"
               >
-                <BarChart data={riskTypeChartData} layout="vertical" accessibilityLayer>
+                <BarChart data={riskTypeChartData} layout="vertical" accessibilityLayer margin={{ left: 10 }}>
                   <CartesianGrid horizontal={false} />
                   <YAxis 
                     dataKey="riskType" 
                     type="category" 
                     tickLine={false} 
-                    tickMargin={10} 
+                    tickMargin={5} 
                     axisLine={false} 
                     width={80}
+                    interval={0}
                     tick={<CustomizedYAxisTick />}
                   />
                   <XAxis type="number" hide />
@@ -273,44 +301,48 @@ export function DashboardClient() {
               </ChartContainer>
             </CardContent>
           </Card>
-          <Card className="lg:col-span-2">
+          <Card className="lg:col-span-2 hover:shadow-md transition-shadow">
             <CardHeader>
-              <CardTitle>Resumo de Tendências por IA</CardTitle>
+              <CardTitle className="text-base md:text-lg">Resumo de Tendências por IA</CardTitle>
               <CardDescription>
-                Tendências gerais de risco e potenciais áreas para melhoria.
+                Análise de tendências gerais de risco e melhorias.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-sm">{trends?.riskSummary}</p>
+              <p className="text-sm leading-relaxed">{trends?.riskSummary}</p>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="hover:shadow-md transition-shadow">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 text-base md:text-lg">
                 <AlertTriangle className="text-destructive" /> Alertas Preditivos de Risco
               </CardTitle>
               <CardDescription>
-                Potenciais futuros problemas de segurança com base nas tendências.
+                Potenciais futuros problemas de segurança.
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <h4 className="font-semibold mb-2">Problemas Previstos:</h4>
-              <p className="text-sm mb-4">{forecast?.predictedIssues}</p>
-              <h4 className="font-semibold mb-2">Justificativa:</h4>
-              <p className="text-sm">{forecast?.reasoning}</p>
+            <CardContent className="space-y-3">
+              <div>
+                <h4 className="font-semibold mb-1 text-sm">Problemas Previstos:</h4>
+                <p className="text-sm text-muted-foreground leading-relaxed">{forecast?.predictedIssues}</p>
+              </div>
+               <div>
+                <h4 className="font-semibold mb-1 text-sm">Justificativa:</h4>
+                <p className="text-sm text-muted-foreground leading-relaxed">{forecast?.reasoning}</p>
+              </div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="hover:shadow-md transition-shadow">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 text-base md:text-lg">
                 <BarChart2 className="text-primary" /> Ações Preventivas
               </CardTitle>
               <CardDescription>
-                Ações sugeridas para mitigar os problemas previstos.
+                Ações sugeridas para mitigar os problemas.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-sm">{forecast?.preventativeActions}</p>
+              <p className="text-sm text-muted-foreground leading-relaxed">{forecast?.preventativeActions}</p>
             </CardContent>
           </Card>
         </div>
@@ -318,6 +350,3 @@ export function DashboardClient() {
     </div>
   );
 }
-
-    
-    
