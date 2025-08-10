@@ -3,7 +3,7 @@
 
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import { DateRange } from 'react-day-picker';
-import { addDays } from 'date-fns';
+import { addDays, isSameDay } from 'date-fns';
 import {
     analyzeTrends,
     riskForecaster,
@@ -27,11 +27,13 @@ interface DashboardContextType {
 
 const DashboardContext = createContext<DashboardContextType | undefined>(undefined);
 
+const CACHE_KEY = 'dashboardAnalysisCache';
+
 export function DashboardProvider({ children }: { children: ReactNode }) {
     const [trends, setTrends] = useState<AnalyzeTrendsOutput | null>(null);
     const [forecast, setForecast] = useState<RiskForecasterOutput | null>(null);
     const [inspections, setInspections] = useState<SafetyInspection[]>([]);
-    const [loading, setLoading] = useState(false); // Only true during AI analysis
+    const [loading, setLoading] = useState(true); // Start with loading true for initial fetch
     const [hasData, setHasData] = useState(false);
     const [analysisPerformed, setAnalysisPerformed] = useState(false);
     const [date, setDate] = useState<DateRange | undefined>({
@@ -40,29 +42,56 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     });
 
     const getInspectionsForDateRange = useCallback(async (filterDate?: DateRange) => {
-        setLoading(true);
-        // Reset previous results
-        setTrends(null);
-        setForecast(null);
-        setHasData(false);
-        setAnalysisPerformed(false);
         try {
             const inspectionsData = await fetchInspections({
                 from: filterDate?.from,
                 to: filterDate?.to
             });
             setInspections(inspectionsData);
-            if (inspectionsData.length > 0) {
-                setHasData(true);
-            }
+            setHasData(inspectionsData.length > 0);
         } catch (error) {
             console.error('Falha ao buscar inspeções:', error);
             setInspections([]);
             setHasData(false);
-        } finally {
-            setLoading(false);
         }
     }, []);
+    
+    // Effect to load initial data and check cache
+    useEffect(() => {
+        const loadDashboard = async () => {
+            setLoading(true);
+            
+            // Try to load from cache first
+            try {
+                const cachedData = localStorage.getItem(CACHE_KEY);
+                if (cachedData && date?.from && date?.to) {
+                    const { trends, forecast, from, to } = JSON.parse(cachedData);
+                    // Check if cache is for the same date range
+                    if (isSameDay(new Date(from), date.from) && isSameDay(new Date(to), date.to)) {
+                        setTrends(trends);
+                        setForecast(forecast);
+                        setAnalysisPerformed(true);
+                    } else {
+                        // Clear cache if dates are different
+                        localStorage.removeItem(CACHE_KEY);
+                        setAnalysisPerformed(false);
+                        setTrends(null);
+                        setForecast(null);
+                    }
+                }
+            } catch (e) {
+                console.error("Failed to read from localStorage", e);
+                setAnalysisPerformed(false);
+            }
+
+            await getInspectionsForDateRange(date);
+            setLoading(false);
+        };
+        
+        loadDashboard();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [date]);
+
 
     const getAIFeatures = useCallback(async (filterDate?: DateRange) => {
         setLoading(true);
@@ -71,7 +100,6 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         setForecast(null);
         
         try {
-            // Re-fetch inspections for the selected range to ensure data is current
             const inspectionsData = await fetchInspections({
                 from: filterDate?.from,
                 to: filterDate?.to
@@ -92,9 +120,28 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
                         to: filterDate?.to
                     });
                     setForecast(forecastData);
+
+                    // Cache the new results
+                    try {
+                        const cachePayload = {
+                            trends: trendData,
+                            forecast: forecastData,
+                            from: filterDate?.from,
+                            to: filterDate?.to
+                        };
+                        localStorage.setItem(CACHE_KEY, JSON.stringify(cachePayload));
+                    } catch (e) {
+                         console.error("Failed to write to localStorage", e);
+                    }
                 }
             } else {
                 setHasData(false);
+                // Clear cache if no data found
+                 try {
+                    localStorage.removeItem(CACHE_KEY);
+                } catch(e) {
+                    console.error("Failed to remove from localStorage", e);
+                }
             }
         } catch (error) {
             console.error('Falha ao buscar dados para o dashboard:', error);
@@ -103,12 +150,6 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
             setLoading(false);
         }
     }, []);
-
-    // This useEffect will run ONLY ONCE to load the initial inspection data without AI analysis.
-    useEffect(() => {
-        getInspectionsForDateRange(date);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [date]);
 
 
     const value = {
