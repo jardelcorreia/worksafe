@@ -112,7 +112,7 @@ export default function RiskTypesPage() {
           <Form {...form}>
             <form
               onSubmit={form.handleSubmit(handleAddRiskType)}
-              className="flex items-end gap-4"
+              className="flex flex-col sm:flex-row items-stretch sm:items-end gap-4"
             >
               <FormField
                 control={form.control}
@@ -127,7 +127,7 @@ export default function RiskTypesPage() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" disabled={form.formState.isSubmitting}>
+              <Button type="submit" disabled={form.formState.isSubmitting} className="w-full sm:w-auto">
                 <PlusCircle className="mr-2 h-4 w-4" />
                 {form.formState.isSubmitting ? 'Adicionando...' : 'Adicionar Tipo de Risco'}
               </Button>

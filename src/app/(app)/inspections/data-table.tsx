@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -75,7 +76,7 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
-      <div className="flex items-center p-4 gap-4">
+      <div className="flex items-center flex-wrap gap-4 p-4">
         <Input
           placeholder="Filtrar por tipo de risco..."
           value={
@@ -84,14 +85,14 @@ export function DataTable<TData, TValue>({
           onChange={(event) =>
             table.getColumn('riskType')?.setFilterValue(event.target.value)
           }
-          className="max-w-sm"
+          className="w-full sm:w-auto sm:max-w-sm"
         />
         <Select
           onValueChange={(value) =>
             table.getColumn('potential')?.setFilterValue(value === 'all' ? undefined : value)
           }
         >
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-full sm:w-[180px]">
             <SelectValue placeholder="Filtrar por Potencial" />
           </SelectTrigger>
           <SelectContent>
@@ -108,7 +109,7 @@ export function DataTable<TData, TValue>({
             table.getColumn('status')?.setFilterValue(value === 'all' ? undefined : value)
           }
         >
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-full sm:w-[180px]">
             <SelectValue placeholder="Filtrar por Status" />
           </SelectTrigger>
           <SelectContent>

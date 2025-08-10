@@ -73,7 +73,7 @@ export function DashboardClient() {
 
   return (
     <div className="grid gap-6">
-        <div className="flex flex-col sm:flex-row items-center gap-4">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
             <Popover>
             <PopoverTrigger asChild>
                 <Button
@@ -111,7 +111,7 @@ export function DashboardClient() {
                 />
             </PopoverContent>
             </Popover>
-            <Button onClick={() => getAIFeatures(date)} disabled={loading}>
+            <Button onClick={() => getAIFeatures(date)} disabled={loading} className="w-full sm:w-auto">
                 {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                 Analisar Período
             </Button>

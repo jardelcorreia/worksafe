@@ -230,7 +230,7 @@ export default function EditInspectionPage({ params }: { params: { id: string } 
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               <FormField
                 control={form.control}
                 name="auditor"
@@ -366,7 +366,7 @@ export default function EditInspectionPage({ params }: { params: { id: string } 
                 control={form.control}
                 name="description"
                 render={({ field }) => (
-                  <FormItem className="lg:col-span-3">
+                  <FormItem className="md:col-span-2 lg:col-span-3">
                     <FormLabel>Descrição da Situação Encontrada</FormLabel>
                     <FormControl>
                       <Textarea
@@ -382,7 +382,7 @@ export default function EditInspectionPage({ params }: { params: { id: string } 
                 control={form.control}
                 name="correctiveAction"
                 render={({ field }) => (
-                  <FormItem className="lg:col-span-3">
+                  <FormItem className="md:col-span-2 lg:col-span-3">
                     <FormLabel>Ação Corretiva</FormLabel>
                     <FormControl>
                       <Textarea
@@ -468,7 +468,7 @@ export default function EditInspectionPage({ params }: { params: { id: string } 
                   </FormItem>
                 )}
               />
-              <div className="lg:col-span-3">
+              <div className="md:col-span-2 lg:col-span-3">
                 <FormLabel>Fotos (até {MAX_PHOTOS})</FormLabel>
                 <FormControl>
                     <div className="mt-2 flex items-center justify-center w-full">
@@ -483,7 +483,7 @@ export default function EditInspectionPage({ params }: { params: { id: string } 
                     </div>
                 </FormControl>
                 {photoPreviews.length > 0 && (
-                    <div className="mt-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                    <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                         {photoPreviews.map((src, index) => (
                             <div key={index} className="relative group">
                                 <Image src={src} alt={`Preview ${index + 1}`} width={150} height={150} className="rounded-md object-cover w-full aspect-square" />
