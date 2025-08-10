@@ -58,6 +58,10 @@ export function DashboardClient() {
 
   const getAIFeatures = useCallback(async (filterDate?: DateRange) => {
       setLoading(true);
+      // Reset previous results for a clean analysis
+      setTrends(null);
+      setForecast(null);
+      setHasData(false);
       try {
         const inspectionsData = await fetchInspections({
             from: filterDate?.from,
@@ -84,16 +88,17 @@ export function DashboardClient() {
           setHasData(false);
         }
       } catch (error) {
-        console.error('Falha ao buscar inspeções do Firestore:', error);
+        console.error('Falha ao buscar dados para o dashboard:', error);
       } finally {
         setLoading(false);
       }
     }, []);
 
+  // This useEffect will run ONLY ONCE when the component first loads.
   useEffect(() => {
     getAIFeatures(date);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [getAIFeatures]);
+  }, []);
 
   const totalInspections = inspections.length;
   const resolvedInspections = inspections.filter(
