@@ -2,11 +2,14 @@
 'use client';
 
 import * as React from 'react';
-import {
+import type {
   ColumnDef,
   ColumnFiltersState,
   SortingState,
   VisibilityState,
+  Table as TableType,
+} from '@tanstack/react-table';
+import {
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
@@ -30,6 +33,8 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { ChevronDown } from 'lucide-react';
+import { PotentialLevels, StatusLevels } from '@/lib/types';
 import {
   Select,
   SelectContent,
@@ -37,29 +42,110 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { PotentialLevels, StatusLevels } from '@/lib/types';
-import { ChevronDown } from 'lucide-react';
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
 }
 
+function DataTableFilters({ table }: { table: TableType<any> }) {
+  return (
+    <div className="flex flex-col sm:flex-row items-center gap-4 w-full">
+      <Input
+        placeholder="Filtrar por descrição..."
+        value={(table.getColumn('description')?.getFilterValue() as string) ?? ''}
+        onChange={(event) =>
+          table.getColumn('description')?.setFilterValue(event.target.value)
+        }
+        className="w-full sm:max-w-sm"
+      />
+      <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+        <Select
+          value={(table.getColumn('potential')?.getFilterValue() as string) ?? ''}
+          onValueChange={(value) =>
+            table.getColumn('potential')?.setFilterValue(value === 'all' ? '' : value)
+          }
+        >
+          <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectValue placeholder="Potencial" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos Potenciais</SelectItem>
+            {PotentialLevels.map((level) => (
+              <SelectItem key={level} value={level}>
+                {level}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select
+          value={(table.getColumn('status')?.getFilterValue() as string) ?? ''}
+          onValueChange={(value) =>
+            table.getColumn('status')?.setFilterValue(value === 'all' ? '' : value)
+          }
+        >
+          <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos Status</SelectItem>
+            {StatusLevels.map((level) => (
+              <SelectItem key={level} value={level}>
+                {level}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" className="w-full sm:ml-auto sm:w-auto">
+            Colunas <ChevronDown className="ml-2 h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          {table
+            .getAllColumns()
+            .filter((column) => column.getCanHide())
+            .map((column) => {
+              return (
+                <DropdownMenuCheckboxItem
+                  key={column.id}
+                  className="capitalize"
+                  checked={column.getIsVisible()}
+                  onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                >
+                  {column.id === 'riskType' ? 'Tipo de Risco' :
+                   column.id === 'description' ? 'Descrição' :
+                   column.id === 'correctiveAction' ? 'Ação Corretiva' :
+                   column.id === 'potential' ? 'Potencial' :
+                   column.id === 'status' ? 'Status' :
+                   column.id === 'auditor' ? 'Auditor' :
+                   column.id === 'date' ? 'Data' :
+                   column.id === 'area' ? 'Área' :
+                   column.id}
+                </DropdownMenuCheckboxItem>
+              );
+            })}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  );
+}
+
 export function DataTable<TData, TValue>({
   columns,
   data,
 }: DataTableProps<TData, TValue>) {
-  const [sorting, setSorting] = React.useState<SortingState>([
-    { id: 'date', desc: true }
-  ]);
+  const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({
-      description: false,
-      correctiveAction: false,
-      auditor: false,
+        correctiveAction: false,
+        auditor: false,
     });
-  const [rowSelection, setRowSelection] = React.useState({});
 
   const table = useReactTable({
     data,
@@ -71,110 +157,17 @@ export function DataTable<TData, TValue>({
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: setRowSelection,
     state: {
       sorting,
       columnFilters,
       columnVisibility,
-      rowSelection,
     },
   });
 
   return (
-    <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
-      <div className="flex items-center flex-wrap gap-4 p-4">
-        <div className="flex-grow min-w-[200px] sm:flex-grow-0">
-          <Input
-            placeholder="Filtrar por tipo de risco..."
-            value={
-              (table.getColumn('riskType')?.getFilterValue() as string) ?? ''
-            }
-            onChange={(event) =>
-              table.getColumn('riskType')?.setFilterValue(event.target.value)
-            }
-            className="w-full"
-          />
-        </div>
-        <div className="flex-grow min-w-[150px] sm:flex-grow-0">
-          <Select
-            onValueChange={(value) =>
-              table.getColumn('potential')?.setFilterValue(value === 'all' ? undefined : value)
-            }
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Filtrar por Potencial" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos os Potenciais</SelectItem>
-              {PotentialLevels.map((level) => (
-                <SelectItem key={level} value={level}>
-                  {level}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="flex-grow min-w-[150px] sm:flex-grow-0">
-          <Select
-            onValueChange={(value) =>
-              table.getColumn('status')?.setFilterValue(value === 'all' ? undefined : value)
-            }
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Filtrar por Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos os Status</SelectItem>
-              {StatusLevels.map((level) => (
-                <SelectItem key={level} value={level}>
-                  {level}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="ml-auto">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline">
-                Colunas <ChevronDown className="ml-2 h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {table
-                .getAllColumns()
-                .filter((column) => column.getCanHide())
-                .map((column) => {
-                  // Manually map IDs to friendly names
-                  const columnNames: { [key: string]: string } = {
-                    date: 'Data',
-                    area: 'Área',
-                    riskType: 'Tipo de Risco',
-                    description: 'Descrição',
-                    correctiveAction: 'Ação Corretiva',
-                    potential: 'Potencial',
-                    status: 'Status',
-                    auditor: 'Auditor',
-                  };
-                  return (
-                    <DropdownMenuCheckboxItem
-                      key={column.id}
-                      className="capitalize"
-                      checked={column.getIsVisible()}
-                      onCheckedChange={(value) =>
-                        column.toggleVisibility(!!value)
-                      }
-                    >
-                      {columnNames[column.id] || column.id}
-                    </DropdownMenuCheckboxItem>
-                  );
-                })}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
-      <div className="border-t overflow-x-auto">
+    <div className="space-y-4">
+      <DataTableFilters table={table} />
+      <div className="rounded-md border">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -217,14 +210,14 @@ export function DataTable<TData, TValue>({
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  Nenhum resultado.
+                  Nenhum resultado encontrado.
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
       </div>
-      <div className="flex items-center justify-end space-x-2 p-4 border-t">
+      <div className="flex items-center justify-end space-x-2 py-4">
         <Button
           variant="outline"
           size="sm"

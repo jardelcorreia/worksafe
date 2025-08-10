@@ -179,7 +179,7 @@ export const columns: ColumnDef<SafetyInspection>[] = [
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          className="whitespace-nowrap"
+          className="whitespace-nowrap px-2"
         >
           Data
           <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -222,7 +222,7 @@ export const columns: ColumnDef<SafetyInspection>[] = [
   },
   {
     accessorKey: 'description',
-    header: 'Descrição da Situação Encontrada',
+    header: 'Descrição',
     cell: ({ row }) => {
       const description = row.getValue('description') as string;
       if (description.length <= 50) {
@@ -298,7 +298,7 @@ export const columns: ColumnDef<SafetyInspection>[] = [
       <Button
         variant="ghost"
         onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-        className="whitespace-nowrap"
+        className="whitespace-nowrap px-2"
       >
         Status
         <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -330,3 +330,5 @@ export const columns: ColumnDef<SafetyInspection>[] = [
     cell: ActionsCell,
   },
 ];
+
+    
