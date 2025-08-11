@@ -137,7 +137,11 @@ export function DashboardClient() {
                 <Calendar
                   initialFocus
                   mode="range"
-                  defaultMonth={date?.from ? subMonths(date.from, 1) : undefined}
+                  defaultMonth={
+                    isMobile 
+                      ? date?.from 
+                      : (date?.from ? subMonths(date.from, 1) : undefined)
+                  }
                   selected={date}
                   onSelect={setDate}
                   numberOfMonths={isMobile ? 1 : 2}
@@ -420,3 +424,5 @@ export function DashboardClient() {
     </div>
   );
 }
+
+    
