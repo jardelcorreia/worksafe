@@ -32,7 +32,6 @@ import {
 } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { Logo } from '@/components/icons';
-import { ShieldCheck } from 'lucide-react';
 
 const adminLoginSchema = z.object({
   password: z.string().min(1, 'A senha é obrigatória.'),
@@ -185,11 +184,6 @@ export default function LoginPage() {
             <p className="mt-4 text-xl text-primary-foreground/90 leading-relaxed">
               Segurança em primeiro lugar, sempre.
             </p>
-            <div className="mt-12">
-              <ShieldCheck 
-                className="mx-auto h-40 w-40 text-primary-foreground/20 stroke-1" 
-              />
-            </div>
           </div>
         </div>
 
