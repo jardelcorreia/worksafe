@@ -15,7 +15,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Text } from 'recharts';
-import { format } from 'date-fns';
+import { format, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
   Card,
@@ -137,7 +137,7 @@ export function DashboardClient() {
                 <Calendar
                   initialFocus
                   mode="range"
-                  defaultMonth={date?.from}
+                  defaultMonth={date?.from ? subMonths(date.from, 1) : undefined}
                   selected={date}
                   onSelect={setDate}
                   numberOfMonths={isMobile ? 1 : 2}
