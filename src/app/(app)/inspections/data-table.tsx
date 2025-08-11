@@ -430,7 +430,8 @@ export function DataTable<TData, TValue>({
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({
     correctiveAction: false,
-    riskType: false, // Hide on mobile by default
+    riskType: false,
+    auditor: true,
   });
 
   const table = useReactTable({
@@ -730,9 +731,7 @@ export const columns: ColumnDef<SafetyInspection>[] = [
   },
   {
     id: 'actions',
-    header: 'Ações',
+    header: 'Opções',
     cell: ActionsCell,
   },
 ];
-
-    
