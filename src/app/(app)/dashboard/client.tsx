@@ -133,7 +133,7 @@ export function DashboardClient() {
                   </span>
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-screen max-w-sm p-0 sm:w-auto" align="start">
+              <PopoverContent className="w-auto p-0" align="start">
                 <Calendar
                   initialFocus
                   mode="range"
