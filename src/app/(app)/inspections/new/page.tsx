@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -295,7 +294,7 @@ export default function NewInspectionPage() {
                 name="auditor"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Auditor *</FormLabel>
+                    <FormLabel>Auditor</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -326,7 +325,7 @@ export default function NewInspectionPage() {
                 name="date"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>Data da Inspeção *</FormLabel>
+                    <FormLabel>Data da Inspeção</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
@@ -367,7 +366,7 @@ export default function NewInspectionPage() {
                 name="area"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Área *</FormLabel>
+                    <FormLabel>Área</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -398,7 +397,7 @@ export default function NewInspectionPage() {
                 name="riskType"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Tipo de Situação de Risco *</FormLabel>
+                    <FormLabel>Tipo de Situação de Risco</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -431,7 +430,7 @@ export default function NewInspectionPage() {
                 name="potential"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Potencial *</FormLabel>
+                    <FormLabel>Potencial</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -456,7 +455,7 @@ export default function NewInspectionPage() {
                 name="status"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Status da Ação Corretiva *</FormLabel>
+                    <FormLabel>Status da Ação Corretiva</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -481,7 +480,7 @@ export default function NewInspectionPage() {
                 name="description"
                 render={({ field }) => (
                   <FormItem className="md:col-span-2 lg:col-span-3">
-                    <FormLabel>Descrição da Situação Encontrada *</FormLabel>
+                    <FormLabel>Descrição da Situação Encontrada</FormLabel>
                     <FormControl>
                       <Textarea
                         placeholder="Descreva a situação em detalhes..."
@@ -499,7 +498,7 @@ export default function NewInspectionPage() {
                 name="correctiveAction"
                 render={({ field }) => (
                   <FormItem className="md:col-span-2 lg:col-span-3">
-                    <FormLabel>Ação Corretiva *</FormLabel>
+                    <FormLabel>Ação Corretiva</FormLabel>
                     <FormControl>
                       <Textarea
                         placeholder="Descreva a ação corretiva necessária ou tomada..."
@@ -517,7 +516,7 @@ export default function NewInspectionPage() {
                 name="responsible"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Responsável pela Ação Corretiva *</FormLabel>
+                    <FormLabel>Responsável pela Ação Corretiva</FormLabel>
                     <FormControl>
                       <Input placeholder="Ex: Equipe de Manutenção" {...field} />
                     </FormControl>
@@ -531,7 +530,7 @@ export default function NewInspectionPage() {
                 name="deadline"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>Prazo Final *</FormLabel>
+                    <FormLabel>Prazo Final</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
@@ -653,5 +652,3 @@ export default function NewInspectionPage() {
     </Card>
   );
 }
-
-    
