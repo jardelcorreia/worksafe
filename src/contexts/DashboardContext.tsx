@@ -1,4 +1,3 @@
-
 'use client';
 
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
@@ -53,7 +52,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         } catch (error) {
             console.error("Failed to parse date from localStorage", error);
         }
-        return { from: addDays(new Date(), -30), to: new Date() };
+        return { from: addDays(new Date(), -7), to: new Date() };
     });
 
     const getCacheKey = (d: DateRange | undefined): string => {
