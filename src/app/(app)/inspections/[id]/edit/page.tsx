@@ -56,6 +56,7 @@ export default function EditInspectionPage({ params }: { params: { id: string } 
   const [riskTypes, setRiskTypes] = useState<RiskType[]>([]);
   const [inspection, setInspection] = useState<SafetyInspection | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const inspectionId = params.id;
 
   const form = useForm<z.infer<typeof inspectionSchema>>({
     resolver: zodResolver(inspectionSchema),
@@ -117,10 +118,10 @@ export default function EditInspectionPage({ params }: { params: { id: string } 
         setIsLoading(false);
       }
     }
-    if (params.id) {
-        loadData(params.id);
+    if (inspectionId) {
+        loadData(inspectionId);
     }
-  }, [params.id, form, toast, router]);
+  }, [inspectionId, form, toast, router]);
 
   const compressImage = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -193,7 +194,7 @@ export default function EditInspectionPage({ params }: { params: { id: string } 
 
   async function onSubmit(values: z.infer<typeof inspectionSchema>) {
     values.photos = photoPreviews;
-    const result = await updateInspection(params.id, values);
+    const result = await updateInspection(inspectionId, values);
     if (result.success) {
       toast({
         title: 'Sucesso',
