@@ -231,7 +231,7 @@ function ActionsCell({ row }: { row: any }) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuLabel>Ações</DropdownMenuLabel>
+        <DropdownMenuLabel>Opções</DropdownMenuLabel>
         <DetailsModal inspection={inspection}>
             <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                 <FileText className="mr-2 h-4 w-4" />
@@ -285,7 +285,7 @@ function MobileInspectionCard({ inspection }: { inspection: SafetyInspection }) 
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                <DropdownMenuLabel>Opções</DropdownMenuLabel>
                 <DetailsModal inspection={inspection}>
                   <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                     <FileText className="mr-2 h-4 w-4" />
