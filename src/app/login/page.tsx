@@ -181,7 +181,7 @@ export default function LoginPage() {
         <div className="relative bg-gradient-to-br from-primary via-primary to-primary/80 flex flex-col items-center justify-center p-12 text-primary-foreground">
           <div className="absolute inset-0 bg-grid-white/10 bg-[size:20px_20px]" />
           <div className="relative z-10 text-center max-w-md">
-            <Logo />
+            <Logo size="large" />
             <p className="mt-4 text-xl text-primary-foreground/90 leading-relaxed">
               Segurança em primeiro lugar, sempre.
             </p>
