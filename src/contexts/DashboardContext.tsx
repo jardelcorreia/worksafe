@@ -34,6 +34,7 @@ const DashboardContext = createContext<DashboardContextType | undefined>(undefin
 
 const CACHE_KEY_PREFIX = 'worksafe-ai-cache-';
 const CACHE_TTL = 1000 * 60 * 60; // 1 hour
+const DATE_RANGE_STORAGE_KEY = 'worksafe-date-range-v2';
 
 export function DashboardProvider({ children }: { children: ReactNode }) {
     const [trends, setTrends] = useState<AnalyzeTrendsOutput | null>(null);
@@ -44,7 +45,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     const [analysisPerformed, setAnalysisPerformed] = useState(false);
     const [date, setDate] = useState<DateRange | undefined>(() => {
         try {
-            const savedDate = localStorage.getItem('worksafe-date-range');
+            const savedDate = localStorage.getItem(DATE_RANGE_STORAGE_KEY);
             if (savedDate) {
                 const { from, to } = JSON.parse(savedDate);
                 return { from: new Date(from), to: new Date(to) };
@@ -111,7 +112,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         if (date) {
             try {
-                localStorage.setItem('worksafe-date-range', JSON.stringify(date));
+                localStorage.setItem(DATE_RANGE_STORAGE_KEY, JSON.stringify(date));
             } catch (error) {
                 console.error("Failed to save date to localStorage", error);
             }
