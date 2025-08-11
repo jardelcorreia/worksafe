@@ -26,13 +26,13 @@ export function UserProfile() {
     admin: {
       name: 'Usuário Admin',
       email: 'admin@worksafe.com',
-      avatar: 'https://placehold.co/40x40',
+      avatar: 'https://placehold.co/100x100',
       fallback: 'AD',
     },
     auditor: {
       name: 'Usuário Auditor',
       email: 'auditor@worksafe.com',
-      avatar: 'https://placehold.co/40x40',
+      avatar: 'https://placehold.co/101x101',
       fallback: 'AU',
     },
   };
