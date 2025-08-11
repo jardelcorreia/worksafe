@@ -38,6 +38,7 @@ import {
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useDashboard } from '@/contexts/DashboardContext';
 import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 
 const CustomizedYAxisTick = (props: any) => {
@@ -75,6 +76,7 @@ export function DashboardClient() {
     getAIFeatures,
     analysisPerformed,
   } = useDashboard();
+  const isMobile = useIsMobile();
 
   const totalInspections = inspections.length;
   const resolvedInspections = inspections.filter(
@@ -138,18 +140,7 @@ export function DashboardClient() {
                   defaultMonth={date?.from}
                   selected={date}
                   onSelect={setDate}
-                  numberOfMonths={1}
-                  className="md:hidden"
-                  locale={ptBR}
-                />
-                <Calendar
-                  initialFocus
-                  mode="range"
-                  defaultMonth={date?.from}
-                  selected={date}
-                  onSelect={setDate}
-                  numberOfMonths={2}
-                  className="hidden md:block"
+                  numberOfMonths={isMobile ? 1 : 2}
                   locale={ptBR}
                 />
               </PopoverContent>
