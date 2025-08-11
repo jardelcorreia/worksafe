@@ -245,6 +245,42 @@ export async function updateInspection(id: string, data: z.infer<typeof inspecti
     }
 }
 
+export async function deleteInspection(id: string) {
+    try {
+        const docRef = doc(db, 'inspections', id);
+        const docSnap = await getDoc(docRef);
+
+        if (!docSnap.exists()) {
+            return { success: false, message: 'Inspeção não encontrada.' };
+        }
+
+        // Delete photos from storage
+        const photos = docSnap.data().photos || [];
+        for (const photoUrl of photos) {
+            try {
+                const photoRef = ref(storage, photoUrl);
+                await deleteObject(photoRef);
+            } catch (error) {
+                if (error instanceof Error && 'code' in error && (error as any).code !== 'storage/object-not-found') {
+                    console.error('Error deleting photo from storage:', error);
+                    // Continue to delete the inspection even if a photo fails to delete
+                }
+            }
+        }
+
+        // Delete the firestore document
+        await deleteDoc(docRef);
+
+        revalidatePath('/inspections');
+        revalidatePath('/dashboard');
+        return { success: true, message: 'Inspeção excluída com sucesso.' };
+    } catch (error) {
+        console.error('Error deleting inspection:', error);
+        return { success: false, message: 'Falha ao excluir inspeção.' };
+    }
+}
+
+
 // Auditor Actions
 export async function fetchAuditors() {
     return await getAuditors();

@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -33,8 +34,9 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
-import { ChevronDown, MoreHorizontal, ArrowUpDown, FileText, Edit } from 'lucide-react';
+import { ChevronDown, MoreHorizontal, ArrowUpDown, FileText, Edit, Trash2 } from 'lucide-react';
 import { PotentialLevels, StatusLevels } from '@/lib/types';
 import {
   Select,
@@ -62,6 +64,17 @@ import {
   DialogClose
 } from '@/components/ui/dialog';
 import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import {
   Carousel,
   CarouselContent,
   CarouselItem,
@@ -70,10 +83,15 @@ import {
 } from '@/components/ui/carousel';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
+import { deleteInspection } from '@/lib/actions';
+
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  setData: React.Dispatch<React.SetStateAction<TData[]>>;
 }
 
 function ImageDialog({ src, open, onOpenChange }: { src: string; open: boolean; onOpenChange: (open: boolean) => void }) {
@@ -214,13 +232,36 @@ function DetailsModal({ inspection, children }: { inspection: SafetyInspection, 
   );
 }
 
-function ActionsCell({ row }: { row: any }) {
+function ActionsCell({ row, table }: { row: any; table: TableType<SafetyInspection> }) {
   const router = useRouter();
+  const { role } = useAuth();
+  const { toast } = useToast();
   const inspection = row.original as SafetyInspection;
 
   const handleEdit = () => {
     router.push(`/inspections/${inspection.id}/edit`);
   };
+
+  const handleDelete = async () => {
+    const result = await deleteInspection(inspection.id);
+    if (result.success) {
+        toast({
+            title: 'Sucesso',
+            description: result.message,
+        });
+        const tableData = table.options.data;
+        const newData = tableData.filter((item) => item.id !== inspection.id);
+        // This is a bit of a hack, we should be using a proper state manager
+        (table.options.meta as any)?.setData(newData);
+    } else {
+        toast({
+            title: 'Erro',
+            description: result.message,
+            variant: 'destructive',
+        });
+    }
+  };
+
 
   return (
     <DropdownMenu>
@@ -242,18 +283,71 @@ function ActionsCell({ row }: { row: any }) {
           <Edit className="mr-2 h-4 w-4" />
           Editar
         </DropdownMenuItem>
+        {role === 'admin' && (
+            <>
+                <DropdownMenuSeparator />
+                <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <DropdownMenuItem
+                            onSelect={(e) => e.preventDefault()}
+                            className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+                        >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Excluir
+                        </DropdownMenuItem>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                Esta ação não pode ser desfeita. Isso excluirá permanentemente a inspeção
+                                e removerá seus dados de nossos servidores.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleDelete} className={cn(buttonVariants({variant: 'destructive'}))}>
+                                Excluir
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+            </>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );
 }
 
 // Mobile Card Component
-function MobileInspectionCard({ inspection }: { inspection: SafetyInspection }) {
+function MobileInspectionCard({ inspection, table }: { inspection: SafetyInspection; table: TableType<SafetyInspection> }) {
   const router = useRouter();
+  const { role } = useAuth();
+  const { toast } = useToast();
 
   const handleEdit = () => {
     router.push(`/inspections/${inspection.id}/edit`);
   };
+
+  const handleDelete = async () => {
+    const result = await deleteInspection(inspection.id);
+    if (result.success) {
+        toast({
+            title: 'Sucesso',
+            description: result.message,
+        });
+        const tableData = table.options.data;
+        const newData = tableData.filter((item) => item.id !== inspection.id);
+        (table.options.meta as any)?.setData(newData);
+    } else {
+        toast({
+            title: 'Erro',
+            description: result.message,
+            variant: 'destructive',
+        });
+    }
+  };
+
 
   return (
     <Card className="w-full">
@@ -296,6 +390,37 @@ function MobileInspectionCard({ inspection }: { inspection: SafetyInspection }) 
                   <Edit className="mr-2 h-4 w-4" />
                   Editar
                 </DropdownMenuItem>
+                {role === 'admin' && (
+                    <>
+                        <DropdownMenuSeparator />
+                        <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <DropdownMenuItem
+                                    onSelect={(e) => e.preventDefault()}
+                                    className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+                                >
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Excluir
+                                </DropdownMenuItem>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        Esta ação não pode ser desfeita. Isso excluirá permanentemente a inspeção
+                                        e removerá seus dados de nossos servidores.
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                    <AlertDialogAction onClick={handleDelete} className={cn(buttonVariants({variant: 'destructive'}))}>
+                                        Excluir
+                                    </AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                    </>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
@@ -426,9 +551,10 @@ function DataTableFilters({ table }: { table: TableType<any> }) {
   );
 }
 
-export function DataTable<TData, TValue>({
+export function DataTable<TData extends { id: string }, TValue>({
   columns,
   data,
+  setData,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -453,6 +579,9 @@ export function DataTable<TData, TValue>({
       columnFilters,
       columnVisibility,
     },
+    meta: {
+      setData,
+    },
     initialState: {
         pagination: {
             pageSize: 5
@@ -470,7 +599,7 @@ export function DataTable<TData, TValue>({
       <div className="block md:hidden space-y-3">
         {filteredInspections.length > 0 ? (
           filteredInspections.map((inspection, index) => (
-            <MobileInspectionCard key={inspection.id || index} inspection={inspection} />
+            <MobileInspectionCard key={inspection.id || index} inspection={inspection} table={table as TableType<SafetyInspection>} />
           ))
         ) : (
           <Card>
@@ -540,7 +669,7 @@ export function DataTable<TData, TValue>({
       {/* Pagination */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4">
         <p className="text-sm text-muted-foreground">
-          Mostrando {table.getRowModel().rows.length} de {data.length} resultados
+          Mostrando {table.getRowModel().rows.length} de {table.options.data.length} resultados
         </p>
         <div className="flex items-center space-x-2">
           <Button
