@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -376,7 +377,11 @@ const SidebarFooter = React.forwardRef<
     <div
       ref={ref}
       data-sidebar="footer"
-      className={cn("mt-auto flex flex-col gap-2 p-2 group-data-[mobile=true]:mb-4", className)}
+      className={cn(
+        "mt-auto flex flex-col gap-2 p-2",
+        "[*:has([data-sidebar=sidebar][data-mobile=true])_&]:mb-4",
+        className
+      )}
       {...props}
     />
   )
