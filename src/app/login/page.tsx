@@ -83,9 +83,6 @@ export default function LoginPage() {
           <div className="bg-gradient-to-r from-primary to-primary/90 px-6 py-8 text-center text-primary-foreground">
             <div className="mx-auto max-w-sm">
               <Logo />
-              <h1 className="mt-4 text-2xl font-bold font-headline sm:text-3xl">
-                WorkSafe
-              </h1>
               <p className="mt-2 text-sm text-primary-foreground/90 sm:text-base">
                 Segurança em primeiro lugar, sempre.
               </p>
