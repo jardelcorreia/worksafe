@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useAuth, type Role } from '@/contexts/AuthContext';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
+import { HardHat, UserCog } from 'lucide-react';
 
 export function UserProfile() {
   const router = useRouter();
@@ -22,18 +23,14 @@ export function UserProfile() {
     router.push('/login');
   };
   
-  const userDetails: Record<NonNullable<Role>, { name: string; email: string; avatar: string; fallback: string }> = {
+  const userDetails: Record<NonNullable<Role>, { name: string; email: string }> = {
     admin: {
       name: 'Usuário Admin',
       email: 'admin@worksafe.com',
-      avatar: 'https://placehold.co/100x100',
-      fallback: 'AD',
     },
     auditor: {
       name: 'Usuário Auditor',
       email: 'auditor@worksafe.com',
-      avatar: 'https://placehold.co/101x101',
-      fallback: 'AU',
     },
   };
 
@@ -57,8 +54,9 @@ export function UserProfile() {
         <DropdownMenuTrigger asChild>
           <div className="flex cursor-pointer items-center gap-3 p-2">
             <Avatar>
-              <AvatarImage src={currentUser.avatar} data-ai-hint={role === 'admin' ? 'manager office' : 'engineer helmet'} />
-              <AvatarFallback>{currentUser.fallback}</AvatarFallback>
+              <AvatarFallback>
+                {role === 'admin' ? <UserCog /> : <HardHat />}
+              </AvatarFallback>
             </Avatar>
             <div className="flex flex-col text-left group-data-[collapsible=icon]:hidden">
               <span className="text-sm font-medium">{currentUser.name}</span>

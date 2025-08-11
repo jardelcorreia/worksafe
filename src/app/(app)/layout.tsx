@@ -12,8 +12,9 @@ import {
   Building,
   AlertTriangleIcon,
   KeyRound,
-  Database,
   ClipboardList,
+  HardHat,
+  UserCog,
 } from 'lucide-react';
 import {
   SidebarProvider,
