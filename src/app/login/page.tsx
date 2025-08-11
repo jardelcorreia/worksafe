@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -183,9 +182,6 @@ export default function LoginPage() {
           <div className="absolute inset-0 bg-grid-white/10 bg-[size:20px_20px]" />
           <div className="relative z-10 text-center max-w-md">
             <Logo />
-            <h1 className="mt-6 text-5xl font-bold font-headline tracking-tight">
-              WorkSafe
-            </h1>
             <p className="mt-4 text-xl text-primary-foreground/90 leading-relaxed">
               Segurança em primeiro lugar, sempre.
             </p>
