@@ -57,7 +57,7 @@ export function UserProfile() {
         <DropdownMenuTrigger asChild>
           <div className="flex cursor-pointer items-center gap-3 p-2">
             <Avatar>
-              <AvatarImage src={currentUser.avatar} data-ai-hint="avatar person" />
+              <AvatarImage src={currentUser.avatar} data-ai-hint={role === 'admin' ? 'manager office' : 'engineer helmet'} />
               <AvatarFallback>{currentUser.fallback}</AvatarFallback>
             </Avatar>
             <div className="flex flex-col text-left group-data-[collapsible=icon]:hidden">
