@@ -401,7 +401,7 @@ export default function EditInspectionPage({ params }: { params: { id: string } 
                   <FormItem>
                     <FormLabel>Responsável pela Ação Corretiva</FormLabel>
                     <FormControl>
-                      <Input placeholder="Ex: Equipe de Manutenção" {...field} />
+                      <Input placeholder="Digite o nome do responsável" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -517,3 +517,5 @@ export default function EditInspectionPage({ params }: { params: { id: string } 
     </Card>
   );
 }
+
+    

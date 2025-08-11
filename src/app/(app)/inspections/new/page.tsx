@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -495,7 +496,7 @@ export default function NewInspectionPage() {
                   <FormItem>
                     <FormLabel>Responsável pela Ação Corretiva</FormLabel>
                     <FormControl>
-                      <Input placeholder="Ex: Equipe de Manutenção" {...field} />
+                      <Input placeholder="Digite o nome do responsável" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -654,3 +655,5 @@ export default function NewInspectionPage() {
     </Card>
   );
 }
+
+    
