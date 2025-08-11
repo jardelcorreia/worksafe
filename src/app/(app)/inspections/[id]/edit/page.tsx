@@ -9,7 +9,7 @@ import { CalendarIcon, Upload, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
@@ -47,8 +47,9 @@ const MAX_FILE_SIZE_MB = 2;
 const COMPRESSION_QUALITY = 0.7;
 const MAX_DIMENSION = 1024;
 
-export default function EditInspectionPage({ params }: { params: { id: string } }) {
+export default function EditInspectionPage() {
   const router = useRouter();
+  const params = useParams();
   const { toast } = useToast();
   const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
   const [auditors, setAuditors] = useState<Auditor[]>([]);
@@ -56,7 +57,7 @@ export default function EditInspectionPage({ params }: { params: { id: string } 
   const [riskTypes, setRiskTypes] = useState<RiskType[]>([]);
   const [inspection, setInspection] = useState<SafetyInspection | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const inspectionId = params.id;
+  const inspectionId = params.id as string;
 
   const form = useForm<z.infer<typeof inspectionSchema>>({
     resolver: zodResolver(inspectionSchema),
@@ -518,5 +519,3 @@ export default function EditInspectionPage({ params }: { params: { id: string } 
     </Card>
   );
 }
-
-    
