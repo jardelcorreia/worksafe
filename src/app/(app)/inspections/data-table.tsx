@@ -335,6 +335,18 @@ function MobileInspectionCard({ inspection }: { inspection: SafetyInspection }) 
 }
 
 function DataTableFilters({ table }: { table: TableType<any> }) {
+  const columnNames: { [key: string]: string } = {
+    date: 'Data',
+    area: 'Área',
+    riskType: 'Tipo de Risco',
+    description: 'Descrição',
+    correctiveAction: 'Ação Corretiva',
+    potential: 'Potencial',
+    status: 'Status',
+    auditor: 'Auditor',
+    actions: 'Opções',
+  };
+
   return (
     <div className="space-y-3 sm:space-y-0 sm:flex sm:items-center sm:gap-4">
       <Input
@@ -404,15 +416,7 @@ function DataTableFilters({ table }: { table: TableType<any> }) {
                   checked={column.getIsVisible()}
                   onCheckedChange={(value) => column.toggleVisibility(!!value)}
                 >
-                  {column.id === 'riskType' ? 'Tipo de Risco' :
-                   column.id === 'description' ? 'Descrição' :
-                   column.id === 'correctiveAction' ? 'Ação Corretiva' :
-                   column.id === 'potential' ? 'Potencial' :
-                   column.id === 'status' ? 'Status' :
-                   column.id === 'auditor' ? 'Auditor' :
-                   column.id === 'date' ? 'Data' :
-                   column.id === 'area' ? 'Área' :
-                   column.id}
+                  {columnNames[column.id] || column.id}
                 </DropdownMenuCheckboxItem>
               );
             })}
