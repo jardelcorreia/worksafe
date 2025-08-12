@@ -44,30 +44,86 @@ export type { RiskForecasterOutput } from '@/ai/flows/risk-forecaster';
 
 async function uploadPhotos(inspectionId: string, photos: string[]): Promise<string[]> {
     console.log(`[uploadPhotos] Iniciando upload para inspectionId: ${inspectionId}`);
+    console.log(`[uploadPhotos] Quantidade de fotos recebidas: ${photos.length}`);
+    
+    // Verificar se o Firebase Storage está configurado
+    if (storage?.app?.options) {
+      console.log(`[uploadPhotos] Storage bucket: ${storage.app.options.storageBucket}`);
+    } else {
+      console.error("[uploadPhotos] Instância do Firebase Storage não parece estar configurada corretamente.");
+      throw new Error("Configuração do Firebase Storage não encontrada.");
+    }
+    
     const photoURLs: string[] = [];
+    
     for (const [index, photo] of photos.entries()) {
+        console.log(`[uploadPhotos] Processando foto ${index + 1}/${photos.length}`);
+        
         if (photo.startsWith('data:image')) {
             console.log(`[uploadPhotos] Foto ${index} é uma nova imagem (base64). Fazendo upload...`);
+            
             try {
-                const storageRef = ref(storage, `inspections/${inspectionId}/${Date.now()}_${index}`);
+                const base64Data = photo.split(',')[1];
+                if (!base64Data) {
+                    throw new Error(`Foto ${index}: Formato base64 inválido`);
+                }
+                
+                const timestamp = Date.now();
+                const fileName = `${timestamp}_${index}.jpg`;
+                const storagePath = `inspections/${inspectionId}/${fileName}`;
+                
+                console.log(`[uploadPhotos] Caminho do storage: ${storagePath}`);
+                
+                const storageRef = ref(storage, storagePath);
+                console.log(`[uploadPhotos] Referência criada, iniciando upload...`);
+                
                 const snapshot = await uploadString(storageRef, photo, 'data_url');
+                console.log(`[uploadPhotos] Upload concluído, obtendo URL...`);
+                
                 const downloadURL = await getDownloadURL(snapshot.ref);
                 photoURLs.push(downloadURL);
                 console.log(`[uploadPhotos] Foto ${index} enviada com sucesso. URL: ${downloadURL}`);
+                
             } catch (error) {
-                console.error("[uploadPhotos] Falha no upload:", error);
-                throw new Error("Falha ao fazer upload de uma ou mais fotos. Verifique a configuração do Storage.");
+                console.error(`[uploadPhotos] Erro detalhado no upload da foto ${index}:`, error);
+                
+                if (error instanceof Error) {
+                    console.error(`[uploadPhotos] Mensagem do erro: ${error.message}`);
+                    console.error(`[uploadPhotos] Stack trace: ${error.stack}`);
+                }
+                
+                if (error && typeof error === 'object' && 'code' in error) {
+                    const firebaseError = error as any;
+                    console.error(`[uploadPhotos] Código do erro Firebase: ${firebaseError.code}`);
+                    
+                    switch (firebaseError.code) {
+                        case 'storage/unauthorized':
+                            throw new Error("Erro de permissão: Verifique as regras de segurança do Firebase Storage");
+                        case 'storage/canceled':
+                            throw new Error("Upload cancelado pelo usuário");
+                        case 'storage/unknown':
+                            throw new Error("Erro desconhecido no Storage. Verifique a configuração");
+                        default:
+                            throw new Error(`Erro do Firebase Storage: ${firebaseError.code}`);
+                    }
+                }
+                
+                throw new Error(`Falha ao fazer upload da foto ${index + 1}.`);
             }
+            
         } else if (photo.startsWith('https://firebasestorage.googleapis.com')) {
             console.log(`[uploadPhotos] Foto ${index} já é um URL do Storage. Mantendo: ${photo}`);
             photoURLs.push(photo);
+            
         } else {
-            console.log(`[uploadPhotos] Foto ${index} não é uma imagem nova nem um URL do Storage. Ignorando: ${photo.substring(0, 50)}...`);
+            console.log(`[uploadPhotos] Foto ${index} não é uma imagem nova nem um URL do Storage. Ignorando.`);
         }
     }
-    console.log(`[uploadPhotos] Upload concluído. URLs finais:`, photoURLs);
+    
+    console.log(`[uploadPhotos] Upload concluído. ${photoURLs.length} URLs finais:`, photoURLs);
     return photoURLs;
 }
+
 
 async function getAuditors(): Promise<Auditor[]> {
   const auditorsCol = query(
@@ -150,13 +206,13 @@ export async function fetchInspections(filters?: DateFilters) {
   try {
     const inspectionsCol = collection(db, 'inspections');
     // Order by date descending to get the latest inspections first.
-    const q = query(inspectionsCol, orderBy('date', 'desc'));
-    
+    let q = query(inspectionsCol, orderBy('date', 'desc'));
+
     const inspectionSnapshot = await getDocs(q);
 
     let inspectionsData = inspectionSnapshot.docs.map(doc => {
       const data = doc.data();
-      // Firestore Timestamps need to be converted to strings for client components
+      // Firestore Timestamps need to be converted to JS Date objects
       const date = data.date instanceof Timestamp ? data.date.toDate().toISOString() : data.date;
       const deadline = data.deadline instanceof Timestamp ? data.deadline.toDate().toISOString() : data.deadline;
       
@@ -171,8 +227,8 @@ export async function fetchInspections(filters?: DateFilters) {
     // Filter by date range in code. This is more robust as it handles both
     // Timestamps from Firestore and date strings from older data.
     if (filters?.from || filters?.to) {
-        const fromDate = filters.from ? new Date(filters.from) : null;
-        const toDate = filters.to ? new Date(filters.to) : null;
+        const fromDate = filters.from ? startOfDay(filters.from) : null;
+        const toDate = filters.to ? endOfDay(filters.to) : null;
         
         inspectionsData = inspectionsData.filter(inspection => {
             const inspectionDate = new Date(inspection.date);
@@ -213,18 +269,14 @@ export async function fetchInspectionById(id: string) {
 
 export async function addInspection(data: z.infer<typeof inspectionSchema>) {
   try {
-    // We pass an empty array because the photos array from the form is what matters.
     const photoURLs = await uploadPhotos("temp_id", data.photos || []);
 
     const inspectionData = {
         ...data,
         date: new Date(data.date),
         deadline: new Date(data.deadline),
-        photos: photoURLs,
+        photos: [], // Start with empty photos
     };
-    
-    // remove photos from data before saving to firestore
-    delete (inspectionData as any).photos;
 
     const docRef = await addDoc(collection(db, 'inspections'), inspectionData);
     
@@ -232,7 +284,6 @@ export async function addInspection(data: z.infer<typeof inspectionSchema>) {
     const finalPhotoURLs = await uploadPhotos(docRef.id, data.photos || []);
     
     await updateDoc(docRef, { photos: finalPhotoURLs });
-
 
     revalidatePath('/inspections');
     revalidatePath('/dashboard');
@@ -262,30 +313,24 @@ export async function updateInspection(id: string, data: z.infer<typeof inspecti
         console.log('[updateInspection] Fotos Originais:', originalPhotos);
         console.log('[updateInspection] Fotos Enviadas:', submittedPhotos);
 
-        // Upload new photos (base64) and keep existing URLs
         const newUploadedURLs = await uploadPhotos(id, submittedPhotos);
         console.log('[updateInspection] URLs Finais (após upload):', newUploadedURLs);
         
-        // Identify which of the original photos were removed
         const photosToDelete = originalPhotos.filter(
-            (originalUrl) => !newUploadedURLs.includes(originalUrl)
+            (originalUrl) => !newUploadedURLs.includes(originalUrl) && originalUrl.startsWith('https://firebasestorage.googleapis.com')
         );
         console.log('[updateInspection] Fotos para Deletar:', photosToDelete);
 
-        // Delete photos from Storage that were removed by the user
         for (const photoUrl of photosToDelete) {
-             if (photoUrl.startsWith('https://firebasestorage.googleapis.com')) {
-                try {
-                    console.log(`[updateInspection] Deletando foto do Storage: ${photoUrl}`);
-                    const photoRef = ref(storage, photoUrl);
-                    await deleteObject(photoRef);
-                } catch (error) {
-                    if (error instanceof Error && 'code' in error && (error as any).code !== 'storage/object-not-found') {
-                        console.error('[updateInspection] Erro ao deletar foto do storage:', error);
-                        // Não interromper o processo se a exclusão da foto falhar
-                    } else {
-                        console.warn(`[updateInspection] Foto não encontrada no Storage para deletar: ${photoUrl}`);
-                    }
+            try {
+                console.log(`[updateInspection] Deletando foto do Storage: ${photoUrl}`);
+                const photoRef = ref(storage, photoUrl);
+                await deleteObject(photoRef);
+            } catch (error) {
+                if (error instanceof Error && 'code' in error && (error as any).code !== 'storage/object-not-found') {
+                    console.error('[updateInspection] Erro ao deletar foto do storage:', error);
+                } else {
+                    console.warn(`[updateInspection] Foto não encontrada no Storage para deletar: ${photoUrl}`);
                 }
             }
         }
@@ -431,5 +476,6 @@ export async function deleteRiskType(id: string) {
         return { success: false, message: 'Falha ao excluir tipo de risco.' };
     }
 }
+
 
     
