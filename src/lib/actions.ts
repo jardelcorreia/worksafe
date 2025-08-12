@@ -59,42 +59,10 @@ async function uploadPhotos(inspectionId: string, photos: string[]): Promise<str
         } else if (photo.startsWith('https://firebasestorage.googleapis.com')) {
             // It's an existing Firebase Storage URL, keep it.
             photoURLs.push(photo);
-        } else {
-            // This might be an old base64 string without the 'data:image' prefix
-            // or some other unexpected format. For this app, we assume old data is also a full data URI.
-            // If it's not a valid URL and not a new upload, we can choose to ignore it or log an error.
-            console.warn(`Ignoring invalid photo format: ${photo.substring(0, 50)}...`);
         }
     }
     return photoURLs;
 }
-
-// Firestore collection getters
-async function getInspections(): Promise<SafetyInspection[]> {
-  try {
-    const inspectionsCol = collection(db, 'inspections');
-    const q = query(inspectionsCol, orderBy('date', 'desc'));
-    
-    const inspectionSnapshot = await getDocs(q);
-    const inspectionsData = inspectionSnapshot.docs.map(doc => {
-      const data = doc.data();
-      return {
-        id: doc.id,
-        ...data,
-        // Firestore Timestamps need to be converted to strings for client components
-        date: data.date instanceof Timestamp ? data.date.toDate().toISOString() : data.date,
-        deadline: data.deadline instanceof Timestamp ? data.deadline.toDate().toISOString() : data.deadline,
-      }
-    }) as SafetyInspection[];
-
-    return inspectionsData;
-
-  } catch (error) {
-    console.error('Falha ao buscar inspeções do Firestore:', error);
-    return [];
-  }
-}
-
 
 async function getAuditors(): Promise<Auditor[]> {
   const auditorsCol = query(
@@ -176,27 +144,34 @@ export async function riskForecaster(identifiedTrends: string, filters?: DateFil
 export async function fetchInspections(filters?: DateFilters) {
   try {
     const inspectionsCol = collection(db, 'inspections');
-    let q = query(inspectionsCol, orderBy('date', 'desc'));
-
-    if (filters?.from) {
-        q = query(q, where('date', '>=', filters.from));
-    }
-    if (filters?.to) {
-        q = query(q, where('date', '<=', filters.to));
-    }
+    // Order by date descending to get the latest inspections first.
+    const q = query(inspectionsCol, orderBy('date', 'desc'));
     
     const inspectionSnapshot = await getDocs(q);
 
-    const inspectionsData = inspectionSnapshot.docs.map(doc => {
-        const data = doc.data();
-        return {
-          id: doc.id,
-          ...data,
-          // Firestore Timestamps need to be converted to strings for client components
-          date: data.date instanceof Timestamp ? data.date.toDate().toISOString() : data.date,
-          deadline: data.deadline instanceof Timestamp ? data.deadline.toDate().toISOString() : data.deadline,
-        }
-      }) as SafetyInspection[];
+    let inspectionsData = inspectionSnapshot.docs.map(doc => {
+      const data = doc.data();
+      const date = data.date instanceof Timestamp ? data.date.toDate() : new Date(data.date);
+      return {
+        id: doc.id,
+        ...data,
+        date: date.toISOString(),
+        deadline: data.deadline instanceof Timestamp ? data.deadline.toDate().toISOString() : data.deadline,
+      }
+    }) as SafetyInspection[];
+
+    // Filter by date range in code to handle both Timestamps and date strings
+    if (filters?.from || filters?.to) {
+        const fromDate = filters.from ? new Date(filters.from) : null;
+        const toDate = filters.to ? new Date(filters.to) : null;
+        
+        inspectionsData = inspectionsData.filter(inspection => {
+            const inspectionDate = new Date(inspection.date);
+            if (fromDate && inspectionDate < fromDate) return false;
+            if (toDate && inspectionDate > toDate) return false;
+            return true;
+        });
+    }
 
     return inspectionsData;
   } catch (error) {
@@ -241,7 +216,6 @@ export async function addInspection(data: z.infer<typeof inspectionSchema>) {
         photoURLs = await uploadPhotos(docRef.id, data.photos);
     }
     
-    // Update the document with the photo URLs
     await updateDoc(docRef, { photos: photoURLs });
 
     revalidatePath('/inspections');
@@ -266,24 +240,18 @@ export async function updateInspection(id: string, data: z.infer<typeof inspecti
         const originalPhotos: string[] = docSnap.data().photos || [];
         const submittedPhotos: string[] = data.photos || [];
 
-        // This will upload new base64 images and return a list of all final URLs
-        // (both new and existing ones).
         const finalPhotoURLs = await uploadPhotos(id, submittedPhotos);
-
-        // Identify which of the original photos are no longer in the final list.
+        
         const photosToDelete = originalPhotos.filter(
             (originalUrl) => !finalPhotoURLs.includes(originalUrl)
         );
 
-        // Delete photos from Storage
         for (const photoUrl of photosToDelete) {
-             // We only want to delete from storage if it's a storage URL
              if (photoUrl.startsWith('https://firebasestorage.googleapis.com')) {
                 try {
                     const photoRef = ref(storage, photoUrl);
                     await deleteObject(photoRef);
                 } catch (error) {
-                    // If the object does not exist, we can ignore the error
                     if (error instanceof Error && 'code' in error && (error as any).code !== 'storage/object-not-found') {
                         console.error('Error deleting photo from storage:', error);
                     }
@@ -291,7 +259,6 @@ export async function updateInspection(id: string, data: z.infer<typeof inspecti
             }
         }
 
-        // Update the document in Firestore
         await updateDoc(docRef, {
             ...data,
             date: new Date(data.date),
@@ -320,10 +287,8 @@ export async function deleteInspection(id: string) {
             return { success: false, message: 'Inspeção não encontrada.' };
         }
 
-        // Delete photos from storage
         const photos = docSnap.data().photos || [];
         for (const photoUrl of photos) {
-            // We only want to delete from storage if it's a storage URL
             if (photoUrl.startsWith('https://firebasestorage.googleapis.com')) {
                 try {
                     const photoRef = ref(storage, photoUrl);
@@ -336,7 +301,6 @@ export async function deleteInspection(id: string) {
             }
         }
 
-        // Delete the firestore document
         await deleteDoc(docRef);
 
         revalidatePath('/inspections');
