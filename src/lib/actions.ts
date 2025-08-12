@@ -48,13 +48,11 @@ async function uploadPhotos(inspectionId: string, photos: string[]): Promise<str
   const photoURLs: string[] = [];
 
   for (const [index, photo] of photos.entries()) {
-    // If the photo is already a URL from Firebase Storage, keep it.
     if (photo.startsWith('https://firebasestorage.googleapis.com')) {
       photoURLs.push(photo);
       continue;
     }
 
-    // If the photo is a new base64 string, upload it.
     if (photo.startsWith('data:image')) {
       try {
         const storageRef = ref(storage, `inspections/${inspectionId}/${Date.now()}_${index}`);
@@ -63,8 +61,6 @@ async function uploadPhotos(inspectionId: string, photos: string[]): Promise<str
         photoURLs.push(downloadURL);
       } catch (error) {
         console.error(`Failed to upload photo at index ${index}:`, error);
-        // Depending on the desired behavior, you might want to throw the error
-        // or just skip the failed upload. For now, we'll throw to indicate failure.
         throw new Error(`Falha no upload da foto ${index + 1}.`);
       }
     }
@@ -239,21 +235,34 @@ export async function addInspection(data: z.infer<typeof inspectionSchema>) {
 export async function updateInspection(id: string, data: z.infer<typeof inspectionSchema>) {
     try {
         const docRef = doc(db, 'inspections', id);
+        const currentDoc = await getDoc(docRef);
+
+        if (!currentDoc.exists()) {
+            throw new Error("Inspeção não encontrada.");
+        }
+
+        const currentPhotos: string[] = currentDoc.data().photos || [];
+        const newPhotosData: string[] = data.photos || [];
+
+        const photosToUpload = newPhotosData.filter(p => p.startsWith('data:image'));
+        const existingURLs = newPhotosData.filter(p => p.startsWith('https://'));
         
-        // This is a simpler approach than trying to diff the arrays.
-        // 1. Delete all existing photos for this inspection from Storage.
-        const storageFolderRef = ref(storage, `inspections/${id}`);
-        try {
-            const existingFiles = await listAll(storageFolderRef);
-            await Promise.all(existingFiles.items.map(fileRef => deleteObject(fileRef)));
-        } catch (error) {
-            console.log('No existing folder to delete, or other error. Continuing...');
+        const uploadedURLs = await uploadPhotos(id, photosToUpload);
+        
+        const finalPhotoURLs = [...existingURLs, ...uploadedURLs];
+
+        // Logic to delete photos from storage that are no longer in the list
+        const photosToDelete = currentPhotos.filter(p => p.startsWith('https://') && !finalPhotoURLs.includes(p));
+        for (const url of photosToDelete) {
+            try {
+                const photoRef = ref(storage, url);
+                await deleteObject(photoRef);
+            } catch (error) {
+                console.error(`Failed to delete photo ${url}:`, error);
+                // Don't block update if a single photo deletion fails
+            }
         }
         
-        // 2. Upload all photos from the form submission as if they are new.
-        const finalPhotoURLs = await uploadPhotos(id, data.photos || []);
-        
-        // 3. Update the document in Firestore with the new data and photo URLs.
         await updateDoc(docRef, {
             ...data,
             date: new Date(data.date),
@@ -276,12 +285,7 @@ export async function updateInspection(id: string, data: z.infer<typeof inspecti
 export async function deleteInspection(id: string) {
     try {
         const docRef = doc(db, 'inspections', id);
-        const docSnap = await getDoc(docRef);
-
-        if (!docSnap.exists()) {
-            return { success: false, message: 'Inspeção não encontrada.' };
-        }
-
+        
         // Delete from Storage first
         try {
             const storageFolderRef = ref(storage, `inspections/${id}`);
