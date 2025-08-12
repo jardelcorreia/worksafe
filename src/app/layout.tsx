@@ -7,7 +7,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 export const metadata: Metadata = {
   title: 'WorkSafe',
   description: 'Um sistema para coletar e analisar dados de segurança no trabalho.',
-  manifest: '/manifest.webmanifest',
+  manifest: '/manifest',
   icons: {
     apple: '/icon.png',
   },
