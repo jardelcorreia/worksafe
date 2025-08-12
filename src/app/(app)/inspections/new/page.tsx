@@ -44,7 +44,7 @@ import { useToast } from '@/hooks/use-toast';
 import { PotentialLevels, StatusLevels, inspectionSchema, type Auditor, type Area, type RiskType } from '@/lib/types';
 
 const MAX_PHOTOS = 5;
-const MAX_FILE_SIZE_MB = 5; // Aumentado para 5MB já que não há compressão
+const MAX_FILE_SIZE_MB = 5;
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 
 export default function NewInspectionPage() {
@@ -624,4 +624,6 @@ export default function NewInspectionPage() {
     </Card>
   );
 }
+    
+
     

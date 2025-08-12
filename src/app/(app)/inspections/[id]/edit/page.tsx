@@ -43,7 +43,8 @@ import { PotentialLevels, StatusLevels, inspectionSchema, type Auditor, type Are
 
 
 const MAX_PHOTOS = 5;
-const MAX_FILE_SIZE_MB = 5; // Aumentado para 5MB já que não há compressão
+const MAX_FILE_SIZE_MB = 5;
+const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 
 export default function EditInspectionPage() {
   const router = useRouter();
@@ -126,6 +127,16 @@ export default function EditInspectionPage() {
     }
   }, [inspectionId, form, toast, router]);
 
+  const validateImageFile = (file: File): string | null => {
+    if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+      return 'Apenas arquivos de imagem (JPEG, PNG, WebP) são aceitos.';
+    }
+    if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+      return `O arquivo excede o tamanho máximo de ${MAX_FILE_SIZE_MB}MB.`;
+    }
+    return null;
+  };
+
   const readFileAsDataURL = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -149,16 +160,15 @@ export default function EditInspectionPage() {
     }
 
     const newPreviews: string[] = [];
+    const errors: string[] = [];
 
     for (const file of files) {
-      if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
-          toast({
-              title: 'Arquivo muito grande',
-              description: `O arquivo ${file.name} excede o tamanho máximo de ${MAX_FILE_SIZE_MB}MB.`,
-              variant: 'destructive',
-          });
-          continue;
+      const validationError = validateImageFile(file);
+      if (validationError) {
+        errors.push(`${file.name}: ${validationError}`);
+        continue;
       }
+
       try {
         const dataUrl = await readFileAsDataURL(file);
         newPreviews.push(dataUrl);
@@ -171,6 +181,14 @@ export default function EditInspectionPage() {
       }
     }
     
+    if (errors.length > 0) {
+      toast({
+        title: 'Erro ao processar imagens',
+        description: errors.join('\n'),
+        variant: 'destructive',
+      });
+    }
+
     setPhotoPreviews((prev) => [...prev, ...newPreviews]);
   };
 
@@ -466,7 +484,7 @@ export default function EditInspectionPage() {
                                 <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Clique para enviar</span> ou arraste e solte</p>
                                 <p className="text-xs text-muted-foreground">PNG, JPG ou GIF (MAX. {MAX_FILE_SIZE_MB}MB por foto)</p>
                             </div>
-                            <input id="dropzone-file" type="file" className="hidden" multiple accept="image/*" onChange={handlePhotoChange} disabled={photoPreviews.length >= MAX_PHOTOS} />
+                            <input id="dropzone-file" type="file" className="hidden" multiple accept={ACCEPTED_IMAGE_TYPES.join(',')} onChange={handlePhotoChange} disabled={photoPreviews.length >= MAX_PHOTOS} />
                         </label>
                     </div>
                 </FormControl>
@@ -505,4 +523,5 @@ export default function EditInspectionPage() {
     </Card>
   );
 }
+
     
