@@ -377,33 +377,3 @@ export async function deleteRiskType(id: string) {
         return { success: false, message: 'Falha ao excluir tipo de risco.' };
     }
 }
-
-export async function debugUpload() {
-  try {
-    console.log('[debugUpload] Iniciando teste de upload...');
-    const testContent = 'data:text/plain;base64,VGVzdGU='; // "Teste" em base64
-    const testRef = ref(storage, 'debug/debug-test.txt');
-    
-    console.log('[debugUpload] Criando referência para:', testRef.fullPath);
-    console.log('[debugUpload] Bucket:', testRef.bucket);
-
-    const snapshot = await uploadString(testRef, testContent, 'data_url');
-    console.log('[debugUpload] Upload bem-sucedido!', snapshot);
-    
-    const url = await getDownloadURL(snapshot.ref);
-    console.log('[debugUpload] URL de download obtida:', url);
-    
-    return { success: true, message: `Upload de teste bem-sucedido! URL: ${url}` };
-  } catch (error: any) {
-    console.error('[debugUpload] ❌ FALHA NO UPLOAD DE TESTE ❌');
-    console.error(`[debugUpload] Código do Erro: ${error.code}`);
-    console.error(`[debugUpload] Mensagem do Erro: ${error.message}`);
-    console.error('[debugUpload] Objeto de erro completo:', error);
-    
-    return { 
-      success: false, 
-      message: `Falha no upload de teste: ${error.code} - ${error.message}` 
-    };
-  }
-}
-    
