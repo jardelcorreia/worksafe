@@ -48,7 +48,7 @@ async function uploadPhotos(inspectionId: string, photos: string[]): Promise<str
   const photoURLs: string[] = [];
 
   for (const [index, photo] of photos.entries()) {
-    // Only upload new images that are in base64 format
+    // Apenas faz o upload de novas imagens que estão no formato base64
     if (photo.startsWith('data:image')) {
       try {
         const storageRef = ref(storage, `inspections/${inspectionId}/${Date.now()}_${index}`);
@@ -56,11 +56,12 @@ async function uploadPhotos(inspectionId: string, photos: string[]): Promise<str
         const downloadURL = await getDownloadURL(snapshot.ref);
         photoURLs.push(downloadURL);
       } catch (error) {
-        console.error(`Failed to upload photo at index ${index}:`, error);
-        // Do not throw an error for a single photo failure, just log it.
-        // Or re-throw if you want the entire operation to fail.
+        console.error(`Falha no upload da foto no índice ${index}:`, error);
         throw new Error(`Falha no upload da foto ${index + 1}.`);
       }
+    } else if (photo.startsWith('https://')) {
+        // Mantém URLs que já existem (no caso de edição sem alteração de foto)
+        photoURLs.push(photo);
     }
   }
   return photoURLs;
@@ -233,47 +234,28 @@ export async function addInspection(data: z.infer<typeof inspectionSchema>) {
 export async function updateInspection(id: string, data: z.infer<typeof inspectionSchema>) {
     try {
         const docRef = doc(db, 'inspections', id);
-        const currentDoc = await getDoc(docRef);
 
-        if (!currentDoc.exists()) {
-            throw new Error("Inspeção não encontrada.");
-        }
-
-        const currentPhotos: string[] = currentDoc.data().photos || [];
-        const newPhotosData: string[] = data.photos || [];
-
-        // Identify which new photos are base64 strings that need uploading
-        const photosToUpload = newPhotosData.filter(p => p.startsWith('data:image'));
-        
-        // Identify which of the existing photos were kept in the new data
-        const keptPhotoURLs = newPhotosData.filter(p => p.startsWith('https://'));
-
-        // Identify which of the old photos were removed
-        const photosToDelete = currentPhotos.filter(p => p.startsWith('https://') && !keptPhotoURLs.includes(p));
-
-        // 1. Delete photos from Storage that were removed by the user
-        for (const url of photosToDelete) {
-            try {
-                const photoRef = ref(storage, url);
-                await deleteObject(photoRef);
-            } catch (error) {
-                console.error(`Failed to delete photo ${url}:`, error);
-                // Don't block update if a single photo deletion fails, just log it.
+        // 1. Apaga todas as fotos antigas do Storage para evitar órfãos.
+        try {
+            const storageFolderRef = ref(storage, `inspections/${id}`);
+            const existingFiles = await listAll(storageFolderRef);
+            await Promise.all(existingFiles.items.map(fileRef => deleteObject(fileRef)));
+        } catch (error) {
+             // Não bloqueia a operação se a pasta não existir.
+            if ((error as any).code !== 'storage/object-not-found') {
+              console.log(`Não foi possível limpar a pasta de fotos para a inspeção ${id}:`, error);
             }
         }
 
-        // 2. Upload new photos (the ones in base64 format)
-        const newUploadedURLs = await uploadPhotos(id, photosToUpload);
+        // 2. Faz o upload de todas as fotos (novas e as que foram mantidas) como se fossem novas.
+        const newUploadedURLs = await uploadPhotos(id, data.photos || []);
         
-        // 3. Combine kept URLs with newly uploaded URLs
-        const finalPhotoURLs = [...keptPhotoURLs, ...newUploadedURLs];
-        
-        // 4. Update the Firestore document with the new data and the final list of photo URLs
+        // 3. Atualiza o documento do Firestore com os novos dados e a lista final de URLs.
         await updateDoc(docRef, {
             ...data,
             date: new Date(data.date),
             deadline: new Date(data.deadline),
-            photos: finalPhotoURLs,
+            photos: newUploadedURLs,
         });
 
         revalidatePath('/inspections');
