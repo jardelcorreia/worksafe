@@ -43,7 +43,6 @@ import { PotentialLevels, StatusLevels, inspectionSchema, type Auditor, type Are
 
 
 const MAX_PHOTOS = 5;
-const MAX_FILE_SIZE_MB = 5;
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 
 export default function EditInspectionPage() {
@@ -131,20 +130,55 @@ export default function EditInspectionPage() {
     if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
       return 'Apenas arquivos de imagem (JPEG, PNG, WebP) são aceitos.';
     }
-    if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
-      return `O arquivo excede o tamanho máximo de ${MAX_FILE_SIZE_MB}MB.`;
-    }
     return null;
   };
-
-  const readFileAsDataURL = (file: File): Promise<string> => {
+  
+  const compressImage = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
+      const MAX_WIDTH = 1024;
+      const MAX_HEIGHT = 1024;
+      const QUALITY = 0.8;
+  
       const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = (error) => reject(error);
       reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = document.createElement('img');
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          let width = img.width;
+          let height = img.height;
+  
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+          }
+  
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            return reject(new Error('Não foi possível obter o contexto do canvas.'));
+          }
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', QUALITY));
+        };
+        img.onerror = (error) => {
+            reject(error);
+        }
+      };
+      reader.onerror = (error) => {
+        reject(error);
+      }
     });
-  }
+  };
 
   const handlePhotoChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
@@ -170,12 +204,12 @@ export default function EditInspectionPage() {
       }
 
       try {
-        const dataUrl = await readFileAsDataURL(file);
-        newPreviews.push(dataUrl);
+        const compressedDataUrl = await compressImage(file);
+        newPreviews.push(compressedDataUrl);
       } catch (error) {
         toast({
-          title: 'Erro ao ler arquivo',
-          description: `Não foi possível ler o arquivo ${file.name}.`,
+          title: 'Erro ao processar imagem',
+          description: `Não foi possível otimizar a imagem ${file.name}.`,
           variant: 'destructive',
         });
       }
@@ -482,7 +516,7 @@ export default function EditInspectionPage() {
                             <div className="flex flex-col items-center justify-center pt-5 pb-6">
                                 <Upload className="w-8 h-8 mb-2 text-muted-foreground" />
                                 <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Clique para enviar</span> ou arraste e solte</p>
-                                <p className="text-xs text-muted-foreground">PNG, JPG ou GIF (MAX. {MAX_FILE_SIZE_MB}MB por foto)</p>
+                                <p className="text-xs text-muted-foreground">PNG, JPG ou WebP</p>
                             </div>
                             <input id="dropzone-file" type="file" className="hidden" multiple accept={ACCEPTED_IMAGE_TYPES.join(',')} onChange={handlePhotoChange} disabled={photoPreviews.length >= MAX_PHOTOS} />
                         </label>
@@ -523,5 +557,3 @@ export default function EditInspectionPage() {
     </Card>
   );
 }
-
-    

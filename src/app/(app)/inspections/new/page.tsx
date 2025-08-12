@@ -44,7 +44,6 @@ import { useToast } from '@/hooks/use-toast';
 import { PotentialLevels, StatusLevels, inspectionSchema, type Auditor, type Area, type RiskType } from '@/lib/types';
 
 const MAX_PHOTOS = 5;
-const MAX_FILE_SIZE_MB = 5;
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 
 export default function NewInspectionPage() {
@@ -106,26 +105,60 @@ export default function NewInspectionPage() {
     if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
       return 'Apenas arquivos de imagem (JPEG, PNG, WebP) são aceitos.';
     }
-    if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
-      return `O arquivo excede o tamanho máximo de ${MAX_FILE_SIZE_MB}MB.`;
-    }
     return null;
   };
 
-  const readFileAsDataURL = (file: File): Promise<string> => {
+  const compressImage = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
+      const MAX_WIDTH = 1024;
+      const MAX_HEIGHT = 1024;
+      const QUALITY = 0.8;
+  
       const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = (error) => reject(error);
       reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = document.createElement('img');
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          let width = img.width;
+          let height = img.height;
+  
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+          }
+  
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            return reject(new Error('Não foi possível obter o contexto do canvas.'));
+          }
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', QUALITY));
+        };
+        img.onerror = (error) => {
+            reject(error);
+        }
+      };
+      reader.onerror = (error) => {
+        reject(error);
+      }
     });
-  }
+  };
 
   const handlePhotoChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
     if (!files.length) return;
 
-    // Check total photo limit
     if (photoPreviews.length + files.length > MAX_PHOTOS) {
       toast({
         title: 'Limite de fotos excedido',
@@ -139,7 +172,6 @@ export default function NewInspectionPage() {
     const errors: string[] = [];
 
     for (const file of files) {
-      // Validate file
       const validationError = validateImageFile(file);
       if (validationError) {
         errors.push(`${file.name}: ${validationError}`);
@@ -147,14 +179,13 @@ export default function NewInspectionPage() {
       }
 
       try {
-        const dataUrl = await readFileAsDataURL(file);
-        newPreviews.push(dataUrl);
+        const compressedDataUrl = await compressImage(file);
+        newPreviews.push(compressedDataUrl);
       } catch (error) {
         errors.push(`${file.name}: Falha ao processar imagem`);
       }
     }
 
-    // Show errors if any
     if (errors.length > 0) {
       toast({
         title: 'Erro ao processar algumas imagens',
@@ -163,12 +194,10 @@ export default function NewInspectionPage() {
       });
     }
 
-    // Add successfully processed images
     if (newPreviews.length > 0) {
       setPhotoPreviews((prev) => [...prev, ...newPreviews]);
     }
 
-    // Clear the input
     event.target.value = '';
   };
 
@@ -178,7 +207,6 @@ export default function NewInspectionPage() {
 
   const onSubmit = async (values: z.infer<typeof inspectionSchema>) => {
     try {
-      // Add photos to form data
       values.photos = photoPreviews;
       
       const result = await addInspection(values);
@@ -559,7 +587,7 @@ export default function NewInspectionPage() {
                         <span className="font-semibold">Clique para enviar</span> ou arraste e solte
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        PNG, JPG, WebP (MAX. {MAX_FILE_SIZE_MB}MB por foto)
+                        PNG, JPG, WebP
                       </p>
                     </div>
                     <input 
@@ -624,6 +652,3 @@ export default function NewInspectionPage() {
     </Card>
   );
 }
-    
-
-    
