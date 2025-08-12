@@ -48,7 +48,6 @@ async function uploadPhotos(inspectionId: string, photos: string[]): Promise<str
   const photoURLs: string[] = [];
 
   for (const [index, photo] of photos.entries()) {
-    // Apenas faz o upload de novas imagens que estão no formato base64
     if (photo.startsWith('data:image')) {
       try {
         const storageRef = ref(storage, `inspections/${inspectionId}/${Date.now()}_${index}`);
@@ -60,7 +59,6 @@ async function uploadPhotos(inspectionId: string, photos: string[]): Promise<str
         throw new Error(`Falha no upload da foto ${index + 1}.`);
       }
     } else if (photo.startsWith('https://')) {
-        // Mantém URLs que já existem (no caso de edição sem alteração de foto)
         photoURLs.push(photo);
     }
   }
@@ -210,16 +208,18 @@ export async function fetchInspectionById(id: string) {
 
 export async function addInspection(data: z.infer<typeof inspectionSchema>) {
   try {
+    const docData = { ...data, photos: [] }; // Don't include photos yet
     const docRef = await addDoc(collection(db, 'inspections'), {
-        ...data,
+        ...docData,
         date: new Date(data.date),
         deadline: new Date(data.deadline),
-        photos: [], 
     });
     
-    const finalPhotoURLs = await uploadPhotos(docRef.id, data.photos || []);
+    // Now upload photos with the new document ID
+    const photoURLs = await uploadPhotos(docRef.id, data.photos || []);
     
-    await updateDoc(docRef, { photos: finalPhotoURLs });
+    // Update the document with the photo URLs
+    await updateDoc(docRef, { photos: photoURLs });
 
     revalidatePath('/inspections');
     revalidatePath('/dashboard');
@@ -235,27 +235,20 @@ export async function updateInspection(id: string, data: z.infer<typeof inspecti
     try {
         const docRef = doc(db, 'inspections', id);
 
-        // 1. Apaga todas as fotos antigas do Storage para evitar órfãos.
-        try {
-            const storageFolderRef = ref(storage, `inspections/${id}`);
-            const existingFiles = await listAll(storageFolderRef);
-            await Promise.all(existingFiles.items.map(fileRef => deleteObject(fileRef)));
-        } catch (error) {
-             // Não bloqueia a operação se a pasta não existir.
-            if ((error as any).code !== 'storage/object-not-found') {
-              console.log(`Não foi possível limpar a pasta de fotos para a inspeção ${id}:`, error);
-            }
-        }
+        // Delete all old photos from storage first
+        const storageFolderRef = ref(storage, `inspections/${id}`);
+        const existingFiles = await listAll(storageFolderRef);
+        await Promise.all(existingFiles.items.map(fileRef => deleteObject(fileRef)));
 
-        // 2. Faz o upload de todas as fotos (novas e as que foram mantidas) como se fossem novas.
-        const newUploadedURLs = await uploadPhotos(id, data.photos || []);
+        // Upload all photos from the form as new files
+        const newPhotoURLs = await uploadPhotos(id, data.photos || []);
         
-        // 3. Atualiza o documento do Firestore com os novos dados e a lista final de URLs.
+        // Update the firestore document with the new data and URLs
         await updateDoc(docRef, {
             ...data,
             date: new Date(data.date),
             deadline: new Date(data.deadline),
-            photos: newUploadedURLs,
+            photos: newPhotoURLs,
         });
 
         revalidatePath('/inspections');
@@ -280,7 +273,6 @@ export async function deleteInspection(id: string) {
             const existingFiles = await listAll(storageFolderRef);
             await Promise.all(existingFiles.items.map(fileRef => deleteObject(fileRef)));
         } catch (error) {
-             // It's okay if the folder doesn't exist or if it's already empty.
             if ((error as any).code !== 'storage/object-not-found') {
               console.log(`Could not delete storage folder for inspection ${id}. It might not exist or there was an error:`, error);
             }
@@ -386,4 +378,32 @@ export async function deleteRiskType(id: string) {
     }
 }
 
+export async function debugUpload() {
+  try {
+    console.log('[debugUpload] Iniciando teste de upload...');
+    const testContent = 'data:text/plain;base64,VGVzdGU='; // "Teste" em base64
+    const testRef = ref(storage, 'debug/debug-test.txt');
+    
+    console.log('[debugUpload] Criando referência para:', testRef.fullPath);
+    console.log('[debugUpload] Bucket:', testRef.bucket);
+
+    const snapshot = await uploadString(testRef, testContent, 'data_url');
+    console.log('[debugUpload] Upload bem-sucedido!', snapshot);
+    
+    const url = await getDownloadURL(snapshot.ref);
+    console.log('[debugUpload] URL de download obtida:', url);
+    
+    return { success: true, message: `Upload de teste bem-sucedido! URL: ${url}` };
+  } catch (error: any) {
+    console.error('[debugUpload] ❌ FALHA NO UPLOAD DE TESTE ❌');
+    console.error(`[debugUpload] Código do Erro: ${error.code}`);
+    console.error(`[debugUpload] Mensagem do Erro: ${error.message}`);
+    console.error('[debugUpload] Objeto de erro completo:', error);
+    
+    return { 
+      success: false, 
+      message: `Falha no upload de teste: ${error.code} - ${error.message}` 
+    };
+  }
+}
     

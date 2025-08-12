@@ -15,6 +15,7 @@ import {
   ClipboardList,
   HardHat,
   UserCog,
+  Bug,
 } from 'lucide-react';
 import {
   SidebarProvider,
@@ -83,6 +84,11 @@ const settingsMenuItems = [
     label: 'Conta',
     icon: KeyRound,
   },
+  {
+    href: '/admin/debug',
+    label: 'Debug Storage',
+    icon: Bug,
+  }
 ];
 
 function AppContent({ children }: { children: React.ReactNode }) {
