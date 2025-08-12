@@ -20,7 +20,8 @@ import {
   ref, 
   uploadString, 
   getDownloadURL,
-  deleteObject
+  deleteObject,
+  listAll
 } from 'firebase/storage';
 import { db, storage } from '@/lib/firebase';
 import { analyzeTrends as analyzeTrendsFlow } from '@/ai/flows/trend-spotter';
@@ -50,13 +51,6 @@ async function uploadPhotos(inspectionId: string, photos: string[]): Promise<str
     const photoURLs: string[] = [];
     
     for (const [index, photo] of photos.entries()) {
-        // If it's already a Firebase Storage URL, keep it.
-        if (photo.startsWith('https://firebasestorage.googleapis.com')) {
-            photoURLs.push(photo);
-            continue;
-        }
-
-        // If it's a new base64 image, upload it.
         if (photo.startsWith('data:image')) {
             try {
                 const storageRef = ref(storage, `inspections/${inspectionId}/${Date.now()}_${index}`);
@@ -65,9 +59,10 @@ async function uploadPhotos(inspectionId: string, photos: string[]): Promise<str
                 photoURLs.push(downloadURL);
             } catch (error) {
                 console.error(`Error uploading photo ${index} for inspection ${inspectionId}:`, error);
-                // Depending on requirements, you might want to throw an error to stop the whole process
                 throw new Error('Falha ao fazer upload de uma das fotos. A operação foi cancelada.');
             }
+        } else if (photo.startsWith('https://firebasestorage.googleapis.com')) {
+            photoURLs.push(photo);
         }
     }
     
@@ -153,41 +148,45 @@ export async function riskForecaster(identifiedTrends: string, filters?: DateFil
 
 // Inspection Actions
 export async function fetchInspections(filters?: DateFilters) {
-  try {
-    let q = query(collection(db, 'inspections'), orderBy('date', 'desc'));
-    const inspectionSnapshot = await getDocs(q);
-
-    let inspectionsData = inspectionSnapshot.docs.map(doc => {
-      const data = doc.data();
-      const date = data.date instanceof Timestamp ? data.date.toDate().toISOString() : data.date;
-      const deadline = data.deadline instanceof Timestamp ? data.deadline.toDate().toISOString() : data.deadline;
+    try {
+      const inspectionsCollection = collection(db, 'inspections');
+      let q = query(inspectionsCollection, orderBy('date', 'desc'));
+  
+      const querySnapshot = await getDocs(q);
       
-      return {
-        id: doc.id,
-        ...data,
-        date: date,
-        deadline: deadline,
-      }
-    }) as SafetyInspection[];
-
-    if (filters?.from || filters?.to) {
-        const fromDate = filters.from ? new Date(filters.from).getTime() : null;
-        const toDate = filters.to ? new Date(filters.to).getTime() : null;
+      let inspectionsData = querySnapshot.docs.map(doc => {
+        const data = doc.data();
+        // Firestore Timestamps need to be converted to JS Dates.
+        const date = data.date instanceof Timestamp ? data.date.toDate().toISOString() : data.date;
+        const deadline = data.deadline instanceof Timestamp ? data.deadline.toDate().toISOString() : data.deadline;
         
-        inspectionsData = inspectionsData.filter(inspection => {
-            const inspectionDate = new Date(inspection.date).getTime();
-            if (fromDate && inspectionDate < fromDate) return false;
-            if (toDate && inspectionDate > toDate) return false;
-            return true;
-        });
+        return {
+          id: doc.id,
+          ...data,
+          date: date,
+          deadline: deadline,
+        }
+      }) as SafetyInspection[];
+  
+      // Manual filtering for date range if provided
+      if (filters?.from || filters?.to) {
+          const fromDate = filters.from ? new Date(filters.from).getTime() : null;
+          const toDate = filters.to ? new Date(filters.to).getTime() : null;
+          
+          inspectionsData = inspectionsData.filter(inspection => {
+              const inspectionDate = new Date(inspection.date).getTime();
+              if (fromDate && inspectionDate < fromDate) return false;
+              if (toDate && inspectionDate > toDate) return false;
+              return true;
+          });
+      }
+      
+      return inspectionsData;
+    } catch (error) {
+      console.error('Falha ao buscar inspeções do Firestore:', error);
+      return [];
     }
-
-    return inspectionsData;
-  } catch (error) {
-    console.error('Falha ao buscar inspeções do Firestore:', error);
-    return [];
   }
-}
 
 export async function fetchInspectionById(id: string) {
     try {
@@ -217,10 +216,9 @@ export async function addInspection(data: z.infer<typeof inspectionSchema>) {
         ...data,
         date: new Date(data.date),
         deadline: new Date(data.deadline),
-        photos: [], // Start with empty photos and upload after getting the ID
+        photos: [], 
     });
     
-    // Now upload photos with the real ID
     const finalPhotoURLs = await uploadPhotos(docRef.id, data.photos || []);
     
     await updateDoc(docRef, { photos: finalPhotoURLs });
@@ -238,42 +236,24 @@ export async function addInspection(data: z.infer<typeof inspectionSchema>) {
 export async function updateInspection(id: string, data: z.infer<typeof inspectionSchema>) {
     try {
         const docRef = doc(db, 'inspections', id);
-        const docSnap = await getDoc(docRef);
-
-        if (!docSnap.exists()) {
-            return { success: false, message: 'Inspeção não encontrada.' };
-        }
         
-        const originalPhotos: string[] = docSnap.data().photos || [];
-        const submittedPhotos: string[] = data.photos || [];
+        // 1. Delete all existing photos for this inspection from Storage.
+        // This is a simpler approach than trying to diff the arrays.
+        // It prevents errors from trying to re-upload existing images.
+        const storageFolderRef = ref(storage, `inspections/${id}`);
+        const existingFiles = await listAll(storageFolderRef);
+        await Promise.all(existingFiles.items.map(fileRef => deleteObject(fileRef)));
 
-        // Upload new photos and get back a list of all current photo URLs (new and existing)
-        const finalPhotoURLs = await uploadPhotos(id, submittedPhotos);
-
-        // Figure out which photos were removed by the user
-        const photosToDelete = originalPhotos.filter(
-            (originalUrl) => !finalPhotoURLs.includes(originalUrl)
-        );
-
-        // Delete the removed photos from Storage
-        for (const photoUrl of photosToDelete) {
-            try {
-                const photoRef = ref(storage, photoUrl);
-                await deleteObject(photoRef);
-            } catch (error) {
-                // Ignore if object doesn't exist, log other errors
-                if (error instanceof Error && 'code' in error && (error as any).code !== 'storage/object-not-found') {
-                    console.error('Error deleting photo from storage:', error);
-                }
-            }
-        }
+        // 2. Upload all photos from the form submission as if they are new.
+        // The `uploadPhotos` function will handle both base64 and existing URLs gracefully.
+        const finalPhotoURLs = await uploadPhotos(id, data.photos || []);
         
-        // Update the document in Firestore
+        // 3. Update the document in Firestore with the new data and photo URLs.
         await updateDoc(docRef, {
             ...data,
             date: new Date(data.date),
             deadline: new Date(data.deadline),
-            photos: finalPhotoURLs, // Save the final, correct list of URLs
+            photos: finalPhotoURLs,
         });
 
         revalidatePath('/inspections');
@@ -310,6 +290,10 @@ export async function deleteInspection(id: string) {
                 }
             }
         }
+        
+        const storageFolderRef = ref(storage, `inspections/${id}`);
+        const existingFiles = await listAll(storageFolderRef);
+        await Promise.all(existingFiles.items.map(fileRef => deleteObject(fileRef)));
 
         await deleteDoc(docRef);
 
@@ -409,6 +393,5 @@ export async function deleteRiskType(id: string) {
         return { success: false, message: 'Falha ao excluir tipo de risco.' };
     }
 }
-
 
     
