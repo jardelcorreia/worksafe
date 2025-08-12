@@ -7,6 +7,10 @@ import { AuthProvider } from '@/contexts/AuthContext';
 export const metadata: Metadata = {
   title: 'WorkSafe',
   description: 'Um sistema para coletar e analisar dados de segurança no trabalho.',
+  manifest: '/manifest.webmanifest',
+  icons: {
+    apple: '/icon.png',
+  },
 };
 
 // Essential for mobile responsiveness
@@ -14,6 +18,7 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
+  themeColor: '#3399ff',
 }
 
 export default function RootLayout({
