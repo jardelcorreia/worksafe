@@ -43,28 +43,121 @@ type DateFilters = {
 export type { AnalyzeTrendsOutput } from '@/ai/flows/trend-spotter';
 export type { RiskForecasterOutput } from '@/ai/flows/risk-forecaster';
 
+// VERSÃO AINDA MAIS DETALHADA da função uploadPhotos para debug
 async function uploadPhotos(inspectionId: string, photos: string[]): Promise<string[]> {
-    if (!photos || photos.length === 0) {
-        return [];
-    }
-
+    console.log(`[uploadPhotos] ========== INÍCIO DEBUG ==========`);
+    console.log(`[uploadPhotos] inspectionId: ${inspectionId}`);
+    console.log(`[uploadPhotos] Quantidade de fotos: ${photos.length}`);
+    console.log(`[uploadPhotos] Storage bucket: ${storage.app.options.storageBucket}`);
+    
+    // Verificar cada foto antes de processar
+    photos.forEach((photo, index) => {
+        console.log(`[uploadPhotos] Foto ${index}:`);
+        console.log(`  - Tipo: ${typeof photo}`);
+        console.log(`  - Tamanho: ${photo.length} caracteres`);
+        console.log(`  - Começa com data:image: ${photo.startsWith('data:image')}`);
+        console.log(`  - Começa com https: ${photo.startsWith('https:')}`);
+        console.log(`  - Primeiros 100 chars: ${photo.substring(0, 100)}...`);
+    });
+    
     const photoURLs: string[] = [];
     
     for (const [index, photo] of photos.entries()) {
+        console.log(`[uploadPhotos] ========== PROCESSANDO FOTO ${index} ==========`);
+        
         if (photo.startsWith('data:image')) {
             try {
-                const storageRef = ref(storage, `inspections/${inspectionId}/${Date.now()}_${index}`);
+                console.log(`[uploadPhotos] Foto ${index} - É base64, processando...`);
+                
+                // Validar formato base64
+                const parts = photo.split(',');
+                if (parts.length !== 2) {
+                    throw new Error(`Foto ${index}: Formato base64 inválido - não tem vírgula`);
+                }
+                
+                const header = parts[0]; // data:image/jpeg;base64
+                const base64Data = parts[1];
+                
+                console.log(`[uploadPhotos] Foto ${index} - Header: ${header}`);
+                console.log(`[uploadPhotos] Foto ${index} - Base64 length: ${base64Data.length}`);
+                
+                if (!base64Data || base64Data.length === 0) {
+                    throw new Error(`Foto ${index}: Dados base64 vazios`);
+                }
+                
+                // Verificar se é uma imagem válida
+                if (!header.includes('image/')) {
+                    throw new Error(`Foto ${index}: Não é uma imagem - header: ${header}`);
+                }
+                
+                // Criar path único
+                const timestamp = Date.now();
+                const randomId = Math.random().toString(36).substring(7);
+                const extension = header.includes('jpeg') || header.includes('jpg') ? 'jpg' : 'png';
+                const fileName = `${timestamp}_${randomId}_${index}.${extension}`;
+                const storagePath = `inspections/${inspectionId}/${fileName}`;
+                
+                console.log(`[uploadPhotos] Foto ${index} - Caminho: ${storagePath}`);
+                console.log(`[uploadPhotos] Foto ${index} - Nome do arquivo: ${fileName}`);
+                
+                // Criar referência
+                console.log(`[uploadPhotos] Foto ${index} - Criando referência...`);
+                const storageRef = ref(storage, storagePath);
+                console.log(`[uploadPhotos] Foto ${index} - Referência criada com sucesso`);
+                
+                // Tentar upload
+                console.log(`[uploadPhotos] Foto ${index} - Iniciando uploadString...`);
+                console.log(`[uploadPhotos] Foto ${index} - Usando método: data_url`);
+                
                 const snapshot = await uploadString(storageRef, photo, 'data_url');
+                console.log(`[uploadPhotos] Foto ${index} - Upload concluído!`);
+                console.log(`[uploadPhotos] Foto ${index} - Snapshot:`, {
+                    bytesTransferred: snapshot.bytesTransferred,
+                    totalBytes: snapshot.totalBytes,
+                    state: snapshot.state
+                });
+                
+                // Obter URL
+                console.log(`[uploadPhotos] Foto ${index} - Obtendo URL de download...`);
                 const downloadURL = await getDownloadURL(snapshot.ref);
+                console.log(`[uploadPhotos] Foto ${index} - URL obtida: ${downloadURL}`);
+                
                 photoURLs.push(downloadURL);
+                console.log(`[uploadPhotos] Foto ${index} - ✅ SUCESSO COMPLETO`);
+                
             } catch (error) {
-                console.error(`Error uploading photo ${index} for inspection ${inspectionId}:`, error);
-                throw new Error('Falha ao fazer upload de uma das fotos. A operação foi cancelada.');
+                console.error(`[uploadPhotos] ❌ ERRO na foto ${index}:`, error);
+                
+                // Análise detalhada do erro
+                if (error && typeof error === 'object') {
+                    const err = error as any;
+                    console.error(`[uploadPhotos] Código do erro: ${err.code}`);
+                    console.error(`[uploadPhotos] Mensagem do erro: ${err.message}`);
+                    console.error(`[uploadPhotos] Stack trace:`, err.stack);
+                    
+                    if (err.serverResponse) {
+                        console.error(`[uploadPhotos] Resposta do servidor:`, err.serverResponse);
+                    }
+                }
+                
+                throw new Error(`Falha no upload da foto ${index + 1}: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
             }
+            
         } else if (photo.startsWith('https://firebasestorage.googleapis.com')) {
+            console.log(`[uploadPhotos] Foto ${index} - URL existente, mantendo: ${photo}`);
             photoURLs.push(photo);
+            
+        } else {
+            console.warn(`[uploadPhotos] Foto ${index} - Formato não reconhecido`);
+            console.warn(`[uploadPhotos] Foto ${index} - Tipo: ${typeof photo}`);
+            console.warn(`[uploadPhotos] Foto ${index} - Valor: ${photo.substring(0, 200)}...`);
         }
     }
+    
+    console.log(`[uploadPhotos] ========== RESULTADO FINAL ==========`);
+    console.log(`[uploadPhotos] Fotos processadas: ${photos.length}`);
+    console.log(`[uploadPhotos] URLs geradas: ${photoURLs.length}`);
+    console.log(`[uploadPhotos] URLs finais:`, photoURLs);
     
     return photoURLs;
 }
@@ -239,13 +332,15 @@ export async function updateInspection(id: string, data: z.infer<typeof inspecti
         
         // 1. Delete all existing photos for this inspection from Storage.
         // This is a simpler approach than trying to diff the arrays.
-        // It prevents errors from trying to re-upload existing images.
         const storageFolderRef = ref(storage, `inspections/${id}`);
-        const existingFiles = await listAll(storageFolderRef);
-        await Promise.all(existingFiles.items.map(fileRef => deleteObject(fileRef)));
-
+        try {
+            const existingFiles = await listAll(storageFolderRef);
+            await Promise.all(existingFiles.items.map(fileRef => deleteObject(fileRef)));
+        } catch (error) {
+            console.log('No existing folder to delete, or other error. Continuing...');
+        }
+        
         // 2. Upload all photos from the form submission as if they are new.
-        // The `uploadPhotos` function will handle both base64 and existing URLs gracefully.
         const finalPhotoURLs = await uploadPhotos(id, data.photos || []);
         
         // 3. Update the document in Firestore with the new data and photo URLs.
@@ -277,24 +372,17 @@ export async function deleteInspection(id: string) {
             return { success: false, message: 'Inspeção não encontrada.' };
         }
 
-        const photos = docSnap.data().photos || [];
-        for (const photoUrl of photos) {
-            if (photoUrl.startsWith('https://firebasestorage.googleapis.com')) {
-                try {
-                    const photoRef = ref(storage, photoUrl);
-                    await deleteObject(photoRef);
-                } catch (error) {
-                    if (error instanceof Error && 'code' in error && (error as any).code !== 'storage/object-not-found') {
-                        console.error('Error deleting photo from storage:', error);
-                    }
-                }
-            }
+        // Delete from Storage first
+        try {
+            const storageFolderRef = ref(storage, `inspections/${id}`);
+            const existingFiles = await listAll(storageFolderRef);
+            await Promise.all(existingFiles.items.map(fileRef => deleteObject(fileRef)));
+        } catch (error) {
+             // It's okay if the folder doesn't exist.
+            console.log(`Could not delete storage folder for inspection ${id}. It might not exist.`);
         }
         
-        const storageFolderRef = ref(storage, `inspections/${id}`);
-        const existingFiles = await listAll(storageFolderRef);
-        await Promise.all(existingFiles.items.map(fileRef => deleteObject(fileRef)));
-
+        // Delete from Firestore
         await deleteDoc(docRef);
 
         revalidatePath('/inspections');
@@ -393,5 +481,3 @@ export async function deleteRiskType(id: string) {
         return { success: false, message: 'Falha ao excluir tipo de risco.' };
     }
 }
-
-    
