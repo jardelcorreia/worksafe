@@ -45,7 +45,7 @@ export type { RiskForecasterOutput } from '@/ai/flows/risk-forecaster';
 async function uploadPhotos(inspectionId: string, photos: string[]): Promise<string[]> {
     const photoURLs: string[] = [];
     for (const photo of photos) {
-        // Check if it is a new base64 image
+        // Only upload new images which are in base64 format
         if (photo.startsWith('data:image')) {
             try {
                 const storageRef = ref(storage, `inspections/${inspectionId}/${Date.now()}`);
@@ -54,6 +54,7 @@ async function uploadPhotos(inspectionId: string, photos: string[]): Promise<str
                 photoURLs.push(downloadURL);
             } catch (error) {
                 console.error("Photo upload failed:", error);
+                // This message is user-facing, so it should be clear.
                 throw new Error("Falha ao fazer upload de uma ou mais fotos. Verifique a configuração do Storage.");
             }
         } else if (photo.startsWith('https://firebasestorage.googleapis.com')) {
@@ -151,16 +152,20 @@ export async function fetchInspections(filters?: DateFilters) {
 
     let inspectionsData = inspectionSnapshot.docs.map(doc => {
       const data = doc.data();
-      const date = data.date instanceof Timestamp ? data.date.toDate() : new Date(data.date);
+      // Firestore Timestamps need to be converted to strings for client components
+      const date = data.date instanceof Timestamp ? data.date.toDate().toISOString() : data.date;
+      const deadline = data.deadline instanceof Timestamp ? data.deadline.toDate().toISOString() : data.deadline;
+      
       return {
         id: doc.id,
         ...data,
-        date: date.toISOString(),
-        deadline: data.deadline instanceof Timestamp ? data.deadline.toDate().toISOString() : data.deadline,
+        date: date,
+        deadline: deadline,
       }
     }) as SafetyInspection[];
 
-    // Filter by date range in code to handle both Timestamps and date strings
+    // Filter by date range in code. This is more robust as it handles both
+    // Timestamps from Firestore and date strings from older data.
     if (filters?.from || filters?.to) {
         const fromDate = filters.from ? new Date(filters.from) : null;
         const toDate = filters.to ? new Date(filters.to) : null;
@@ -204,19 +209,22 @@ export async function fetchInspectionById(id: string) {
 
 export async function addInspection(data: z.infer<typeof inspectionSchema>) {
   try {
+    // The photos array from the form contains only new base64 images
+    const photoURLs = await uploadPhotos("temp_id", data.photos || []);
+
     const docRef = await addDoc(collection(db, 'inspections'), {
       ...data,
       date: new Date(data.date),
       deadline: new Date(data.deadline),
-      photos: [], // Start with no photos, will be updated after upload
+      photos: photoURLs, // Save the real URLs from Storage
     });
-
-    let photoURLs: string[] = [];
-    if (data.photos && data.photos.length > 0) {
-        photoURLs = await uploadPhotos(docRef.id, data.photos);
-    }
     
-    await updateDoc(docRef, { photos: photoURLs });
+    // If we used a temp_id, we might want to rename the folder, but for simplicity we can leave it.
+    // Or we create the doc first, then upload, then update.
+    if (photoURLs.length > 0) {
+        const finalPhotoURLs = photoURLs.map(url => url.replace("temp_id", docRef.id));
+        await updateDoc(docRef, { photos: finalPhotoURLs });
+    }
 
     revalidatePath('/inspections');
     revalidatePath('/dashboard');
@@ -237,21 +245,34 @@ export async function updateInspection(id: string, data: z.infer<typeof inspecti
             return { success: false, message: 'Inspeção não encontrada.' };
         }
 
-        const originalPhotos: string[] = docSnap.data().photos || [];
+        const originalData = docSnap.data();
+        const originalPhotos: string[] = originalData.photos || [];
         const submittedPhotos: string[] = data.photos || [];
 
-        const finalPhotoURLs = await uploadPhotos(id, submittedPhotos);
+        // Separate new photos (base64) from existing URLs or base64 data
+        const newBase64Photos = submittedPhotos.filter(p => p.startsWith('data:image'));
+        const existingPhotos = submittedPhotos.filter(p => !p.startsWith('data:image'));
+
+        // Upload only the new photos
+        const newUploadedURLs = await uploadPhotos(id, newBase64Photos);
         
+        // Combine existing URLs with the newly uploaded ones
+        const finalPhotoURLs = [...existingPhotos, ...newUploadedURLs];
+        
+        // Identify which of the original photos were removed
         const photosToDelete = originalPhotos.filter(
             (originalUrl) => !finalPhotoURLs.includes(originalUrl)
         );
 
+        // Delete photos from Storage that were removed by the user
         for (const photoUrl of photosToDelete) {
+             // Only attempt to delete photos that are actual Storage URLs
              if (photoUrl.startsWith('https://firebasestorage.googleapis.com')) {
                 try {
                     const photoRef = ref(storage, photoUrl);
                     await deleteObject(photoRef);
                 } catch (error) {
+                    // It's okay if the object doesn't exist, maybe it was already deleted.
                     if (error instanceof Error && 'code' in error && (error as any).code !== 'storage/object-not-found') {
                         console.error('Error deleting photo from storage:', error);
                     }
