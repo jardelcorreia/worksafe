@@ -48,11 +48,7 @@ async function uploadPhotos(inspectionId: string, photos: string[]): Promise<str
   const photoURLs: string[] = [];
 
   for (const [index, photo] of photos.entries()) {
-    if (photo.startsWith('https://firebasestorage.googleapis.com')) {
-      photoURLs.push(photo);
-      continue;
-    }
-
+    // Only upload new images that are in base64 format
     if (photo.startsWith('data:image')) {
       try {
         const storageRef = ref(storage, `inspections/${inspectionId}/${Date.now()}_${index}`);
@@ -61,6 +57,8 @@ async function uploadPhotos(inspectionId: string, photos: string[]): Promise<str
         photoURLs.push(downloadURL);
       } catch (error) {
         console.error(`Failed to upload photo at index ${index}:`, error);
+        // Do not throw an error for a single photo failure, just log it.
+        // Or re-throw if you want the entire operation to fail.
         throw new Error(`Falha no upload da foto ${index + 1}.`);
       }
     }
@@ -244,25 +242,33 @@ export async function updateInspection(id: string, data: z.infer<typeof inspecti
         const currentPhotos: string[] = currentDoc.data().photos || [];
         const newPhotosData: string[] = data.photos || [];
 
+        // Identify which new photos are base64 strings that need uploading
         const photosToUpload = newPhotosData.filter(p => p.startsWith('data:image'));
-        const existingURLs = newPhotosData.filter(p => p.startsWith('https://'));
         
-        const uploadedURLs = await uploadPhotos(id, photosToUpload);
-        
-        const finalPhotoURLs = [...existingURLs, ...uploadedURLs];
+        // Identify which of the existing photos were kept in the new data
+        const keptPhotoURLs = newPhotosData.filter(p => p.startsWith('https://'));
 
-        // Logic to delete photos from storage that are no longer in the list
-        const photosToDelete = currentPhotos.filter(p => p.startsWith('https://') && !finalPhotoURLs.includes(p));
+        // Identify which of the old photos were removed
+        const photosToDelete = currentPhotos.filter(p => p.startsWith('https://') && !keptPhotoURLs.includes(p));
+
+        // 1. Delete photos from Storage that were removed by the user
         for (const url of photosToDelete) {
             try {
                 const photoRef = ref(storage, url);
                 await deleteObject(photoRef);
             } catch (error) {
                 console.error(`Failed to delete photo ${url}:`, error);
-                // Don't block update if a single photo deletion fails
+                // Don't block update if a single photo deletion fails, just log it.
             }
         }
+
+        // 2. Upload new photos (the ones in base64 format)
+        const newUploadedURLs = await uploadPhotos(id, photosToUpload);
         
+        // 3. Combine kept URLs with newly uploaded URLs
+        const finalPhotoURLs = [...keptPhotoURLs, ...newUploadedURLs];
+        
+        // 4. Update the Firestore document with the new data and the final list of photo URLs
         await updateDoc(docRef, {
             ...data,
             date: new Date(data.date),
@@ -292,8 +298,10 @@ export async function deleteInspection(id: string) {
             const existingFiles = await listAll(storageFolderRef);
             await Promise.all(existingFiles.items.map(fileRef => deleteObject(fileRef)));
         } catch (error) {
-             // It's okay if the folder doesn't exist.
-            console.log(`Could not delete storage folder for inspection ${id}. It might not exist.`);
+             // It's okay if the folder doesn't exist or if it's already empty.
+            if ((error as any).code !== 'storage/object-not-found') {
+              console.log(`Could not delete storage folder for inspection ${id}. It might not exist or there was an error:`, error);
+            }
         }
         
         // Delete from Firestore
@@ -395,3 +403,5 @@ export async function deleteRiskType(id: string) {
         return { success: false, message: 'Falha ao excluir tipo de risco.' };
     }
 }
+
+    
