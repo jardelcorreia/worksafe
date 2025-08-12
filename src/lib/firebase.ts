@@ -9,7 +9,7 @@ import { getStorage } from "firebase/storage";
 const firebaseConfig: FirebaseOptions = {
   projectId: "worksafe-ai-kogel",
   appId: "1:256398808652:web:81823c9c53440b56dd06e9",
-  storageBucket: "worksafe-ai-kogel.appspot.com",
+  storageBucket: "worksafe-ai-kogel.firebasestorage.app",
   apiKey: "AIzaSyBgMgave8JnoDDWcV3x5RibHKUO2RinEj4",
   authDomain: "worksafe-ai-kogel.firebaseapp.com",
   measurementId: "",
