@@ -44,9 +44,7 @@ import { useToast } from '@/hooks/use-toast';
 import { PotentialLevels, StatusLevels, inspectionSchema, type Auditor, type Area, type RiskType } from '@/lib/types';
 
 const MAX_PHOTOS = 5;
-const MAX_FILE_SIZE_MB = 2;
-const COMPRESSION_QUALITY = 0.7;
-const MAX_DIMENSION = 1024;
+const MAX_FILE_SIZE_MB = 5; // Aumentado para 5MB já que não há compressão
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 
 export default function NewInspectionPage() {
@@ -114,43 +112,14 @@ export default function NewInspectionPage() {
     return null;
   };
 
-  const compressImage = useCallback((file: File): Promise<string> => {
+  const readFileAsDataURL = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = (error) => reject(error);
       reader.readAsDataURL(file);
-      reader.onload = (event) => {
-        const img = document.createElement('img');
-        img.src = event.target?.result as string;
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          let { width, height } = img;
-
-          // Calculate new dimensions while maintaining aspect ratio
-          if (width > height) {
-            if (width > MAX_DIMENSION) {
-              height = Math.round((height * MAX_DIMENSION) / width);
-              width = MAX_DIMENSION;
-            }
-          } else if (height > MAX_DIMENSION) {
-            width = Math.round((width * MAX_DIMENSION) / height);
-            height = MAX_DIMENSION;
-          }
-
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          if (!ctx) {
-            reject(new Error('Could not get canvas context'));
-            return;
-          }
-          ctx.drawImage(img, 0, 0, width, height);
-          resolve(canvas.toDataURL(file.type, COMPRESSION_QUALITY));
-        };
-        img.onerror = () => reject(new Error('Failed to load image'));
-      };
-      reader.onerror = () => reject(new Error('Failed to read file'));
     });
-  }, []);
+  }
 
   const handlePhotoChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
@@ -178,8 +147,8 @@ export default function NewInspectionPage() {
       }
 
       try {
-        const compressedDataUrl = await compressImage(file);
-        newPreviews.push(compressedDataUrl);
+        const dataUrl = await readFileAsDataURL(file);
+        newPreviews.push(dataUrl);
       } catch (error) {
         errors.push(`${file.name}: Falha ao processar imagem`);
       }
@@ -655,5 +624,4 @@ export default function NewInspectionPage() {
     </Card>
   );
 }
-
     

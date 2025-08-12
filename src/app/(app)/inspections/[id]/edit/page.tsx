@@ -43,9 +43,7 @@ import { PotentialLevels, StatusLevels, inspectionSchema, type Auditor, type Are
 
 
 const MAX_PHOTOS = 5;
-const MAX_FILE_SIZE_MB = 2;
-const COMPRESSION_QUALITY = 0.7;
-const MAX_DIMENSION = 1024;
+const MAX_FILE_SIZE_MB = 5; // Aumentado para 5MB já que não há compressão
 
 export default function EditInspectionPage() {
   const router = useRouter();
@@ -128,38 +126,14 @@ export default function EditInspectionPage() {
     }
   }, [inspectionId, form, toast, router]);
 
-  const compressImage = (file: File): Promise<string> => {
+  const readFileAsDataURL = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = (event) => {
-        const img = document.createElement('img');
-        img.src = event.target?.result as string;
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          let { width, height } = img;
-
-          if (width > height) {
-            if (width > MAX_DIMENSION) {
-              height = Math.round((height * MAX_DIMENSION) / width);
-              width = MAX_DIMENSION;
-            }
-          } else if (height > MAX_DIMENSION) {
-            width = Math.round((width * MAX_DIMENSION) / height);
-            height = MAX_DIMENSION;
-          }
-
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          ctx?.drawImage(img, 0, 0, width, height);
-          resolve(canvas.toDataURL(file.type, COMPRESSION_QUALITY));
-        };
-        img.onerror = (error) => reject(error);
-      };
+      reader.onload = () => resolve(reader.result as string);
       reader.onerror = (error) => reject(error);
+      reader.readAsDataURL(file);
     });
-  };
+  }
 
   const handlePhotoChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
@@ -185,8 +159,16 @@ export default function EditInspectionPage() {
           });
           continue;
       }
-      const compressedDataUrl = await compressImage(file);
-      newPreviews.push(compressedDataUrl);
+      try {
+        const dataUrl = await readFileAsDataURL(file);
+        newPreviews.push(dataUrl);
+      } catch (error) {
+        toast({
+          title: 'Erro ao ler arquivo',
+          description: `Não foi possível ler o arquivo ${file.name}.`,
+          variant: 'destructive',
+        });
+      }
     }
     
     setPhotoPreviews((prev) => [...prev, ...newPreviews]);
