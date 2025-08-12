@@ -162,7 +162,6 @@ async function uploadPhotos(inspectionId: string, photos: string[]): Promise<str
     return photoURLs;
 }
 
-
 async function getAuditors(): Promise<Auditor[]> {
   const auditorsCol = query(
     collection(db, 'auditors'),
@@ -330,8 +329,8 @@ export async function updateInspection(id: string, data: z.infer<typeof inspecti
     try {
         const docRef = doc(db, 'inspections', id);
         
-        // 1. Delete all existing photos for this inspection from Storage.
         // This is a simpler approach than trying to diff the arrays.
+        // 1. Delete all existing photos for this inspection from Storage.
         const storageFolderRef = ref(storage, `inspections/${id}`);
         try {
             const existingFiles = await listAll(storageFolderRef);
@@ -481,3 +480,5 @@ export async function deleteRiskType(id: string) {
         return { success: false, message: 'Falha ao excluir tipo de risco.' };
     }
 }
+
+    
