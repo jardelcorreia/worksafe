@@ -1,3 +1,4 @@
+
 'use client';
 
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
@@ -48,11 +49,15 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
             const savedDate = localStorage.getItem(DATE_RANGE_STORAGE_KEY);
             if (savedDate) {
                 const { from, to } = JSON.parse(savedDate);
-                return { from: new Date(from), to: new Date(to) };
+                // Ensure 'from' and 'to' are valid date strings before creating Date objects
+                if (from && to) {
+                    return { from: new Date(from), to: new Date(to) };
+                }
             }
         } catch (error) {
             console.error("Failed to parse date from localStorage", error);
         }
+        // Default to last 7 days if nothing is stored or if parsing fails
         return { from: addDays(new Date(), -7), to: new Date() };
     });
 
@@ -70,9 +75,10 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         setAnalysisPerformed(false);
         try {
             const inspectionsData = await fetchInspections({
-                from: filterDate?.from,
-                to: filterDate?.to
+                from: filterDate?.from ? startOfDay(filterDate.from) : undefined,
+                to: filterDate?.to ? endOfDay(filterDate.to) : undefined,
             });
+
             const currentHasData = inspectionsData.length > 0;
             setInspections(inspectionsData);
             setHasData(currentHasData);
@@ -112,7 +118,9 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         if (date) {
             try {
-                localStorage.setItem(DATE_RANGE_STORAGE_KEY, JSON.stringify(date));
+                if(date.from && date.to){
+                    localStorage.setItem(DATE_RANGE_STORAGE_KEY, JSON.stringify(date));
+                }
             } catch (error) {
                 console.error("Failed to save date to localStorage", error);
             }

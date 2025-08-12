@@ -46,10 +46,16 @@ async function uploadPhotos(inspectionId: string, photos: string[]): Promise<str
     const photoURLs: string[] = [];
     for (const photo of photos) {
         if (photo.startsWith('data:')) { // It's a new base64 image
-            const storageRef = ref(storage, `inspections/${inspectionId}/${Date.now()}`);
-            const snapshot = await uploadString(storageRef, photo, 'data_url');
-            const downloadURL = await getDownloadURL(snapshot.ref);
-            photoURLs.push(downloadURL);
+            try {
+                const storageRef = ref(storage, `inspections/${inspectionId}/${Date.now()}`);
+                const snapshot = await uploadString(storageRef, photo, 'data_url');
+                const downloadURL = await getDownloadURL(snapshot.ref);
+                photoURLs.push(downloadURL);
+            } catch (error) {
+                console.error("Photo upload failed:", error);
+                // Propagate the error to be caught by the calling function
+                throw new Error("Falha ao fazer upload de uma ou mais fotos. Verifique a configuração do Storage.");
+            }
         } else { // It's an existing URL
             photoURLs.push(photo);
         }
@@ -60,29 +66,32 @@ async function uploadPhotos(inspectionId: string, photos: string[]): Promise<str
 // Firestore collection getters
 async function getInspections(filters?: DateFilters): Promise<SafetyInspection[]> {
   try {
-    const queryConstraints = [orderBy('date', 'desc')];
+    const inspectionsCol = collection(db, 'inspections');
+    let q = query(inspectionsCol, orderBy('date', 'desc'));
 
     if (filters?.from) {
-        queryConstraints.push(where('date', '>=', Timestamp.fromDate(filters.from).toDate().toISOString().split('T')[0]));
+        q = query(q, where('date', '>=', filters.from));
     }
     if (filters?.to) {
-        queryConstraints.push(where('date', '<=', Timestamp.fromDate(filters.to).toDate().toISOString().split('T')[0]));
+        q = query(q, where('date', '<=', filters.to));
     }
+    
+    const inspectionSnapshot = await getDocs(q);
+    const inspectionsData = inspectionSnapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        ...data,
+        // Firestore Timestamps need to be converted to strings for client components
+        date: data.date instanceof Timestamp ? data.date.toDate().toISOString() : data.date,
+        deadline: data.deadline instanceof Timestamp ? data.deadline.toDate().toISOString() : data.deadline,
+      }
+    }) as SafetyInspection[];
 
-    const inspectionsCol = query(
-      collection(db, 'inspections'),
-      ...queryConstraints
-    );
+    return inspectionsData;
 
-    const inspectionSnapshot = await getDocs(inspectionsCol);
-    return inspectionSnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    })) as SafetyInspection[];
   } catch (error) {
     console.error('Falha ao buscar inspeções do Firestore:', error);
-    // Em um ambiente de produção, você pode querer lançar o erro
-    // ou retornar um array vazio para evitar que a página quebre.
     return [];
   }
 }
@@ -121,7 +130,7 @@ async function getRiskTypes(): Promise<RiskType[]> {
 // AI Actions
 export async function analyzeTrends(filters?: DateFilters) {
   try {
-    const inspections = await getInspections(filters);
+    const inspections = await fetchInspections(filters);
     if (inspections.length === 0) {
         return { mostFrequentAreas: [], mostFrequentRiskTypes: [], riskSummary: '' };
     }
@@ -141,7 +150,7 @@ export async function analyzeTrends(filters?: DateFilters) {
 
 export async function riskForecaster(identifiedTrends: string, filters?: DateFilters) {
   try {
-    const inspections = await getInspections(filters);
+    const inspections = await fetchInspections(filters);
     if (inspections.length === 0) {
         return { predictedIssues: '', reasoning: '', preventativeActions: '' };
     }
@@ -165,7 +174,33 @@ export async function riskForecaster(identifiedTrends: string, filters?: DateFil
 
 // Inspection Actions
 export async function fetchInspections(filters?: DateFilters) {
-  return await getInspections(filters);
+  try {
+    const inspectionsCol = collection(db, 'inspections');
+    let q = query(inspectionsCol);
+
+    const queryConstraints = [orderBy('date', 'desc')];
+
+    if (filters?.from) {
+        const fromDate = new Date(filters.from);
+        queryConstraints.push(where('date', '>=', fromDate.toISOString().split('T')[0]));
+    }
+    if (filters?.to) {
+        const toDate = new Date(filters.to);
+        queryConstraints.push(where('date', '<=', toDate.toISOString().split('T')[0]));
+    }
+    
+    q = query(inspectionsCol, ...queryConstraints);
+
+    const inspectionSnapshot = await getDocs(q);
+
+    return inspectionSnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    })) as SafetyInspection[];
+  } catch (error) {
+    console.error('Falha ao buscar inspeções do Firestore:', error);
+    return [];
+  }
 }
 
 export async function fetchInspectionById(id: string) {
@@ -188,13 +223,15 @@ export async function addInspection(data: z.infer<typeof inspectionSchema>) {
   try {
     const docRef = await addDoc(collection(db, 'inspections'), {
       ...data,
-      timestamp: new Date().toLocaleString('en-US'),
-      date: new Date(data.date).toISOString().split('T')[0],
-      deadline: new Date(data.deadline).toISOString().split('T')[0],
-      photos: [],
+      date: new Date(data.date),
+      deadline: new Date(data.deadline),
+      photos: [], // Start with no photos
     });
 
+    // Now upload photos and get their URLs
     const photoURLs = await uploadPhotos(docRef.id, data.photos || []);
+    
+    // Update the document with the photo URLs
     await updateDoc(docRef, { photos: photoURLs });
 
     revalidatePath('/inspections');
@@ -202,46 +239,62 @@ export async function addInspection(data: z.infer<typeof inspectionSchema>) {
     return { success: true, message: 'Inspeção adicionada com sucesso.' };
   } catch (error) {
     console.error('Error adding inspection:', error);
-    return { success: false, message: 'Falha ao adicionar inspeção.' };
+    const errorMessage = error instanceof Error ? error.message : 'Falha ao adicionar inspeção.';
+    return { success: false, message: errorMessage };
   }
 }
 
 export async function updateInspection(id: string, data: z.infer<typeof inspectionSchema>) {
     try {
         const docRef = doc(db, 'inspections', id);
-        const currentDoc = await getDoc(docRef);
-        const currentPhotos = currentDoc.data()?.photos || [];
+        const docSnap = await getDoc(docRef);
 
-        const photoURLs = await uploadPhotos(id, data.photos || []);
-
-        // Delete photos from storage that are no longer in the list
-        const photosToDelete = currentPhotos.filter((p: string) => !photoURLs.includes(p));
-        for(const photoUrl of photosToDelete) {
-          try {
-            const photoRef = ref(storage, photoUrl);
-            await deleteObject(photoRef);
-          } catch (error) {
-            // If the object does not exist, we can ignore the error
-            if (error instanceof Error && 'code' in error && (error as any).code !== 'storage/object-not-found') {
-              console.error('Error deleting photo from storage:', error);
-            }
-          }
+        if (!docSnap.exists()) {
+            return { success: false, message: 'Inspeção não encontrada.' };
         }
 
+        const originalPhotos: string[] = docSnap.data().photos || [];
+        const submittedPhotos: string[] = data.photos || [];
+
+        // Upload new photos (base64) and get their URLs, keep existing URLs
+        const finalPhotoURLs = await uploadPhotos(id, submittedPhotos);
+
+        // Determine which photos to delete from storage
+        const photosToDelete = originalPhotos.filter(
+            (originalUrl) => !finalPhotoURLs.includes(originalUrl)
+        );
+
+        // Delete photos from Storage
+        for (const photoUrl of photosToDelete) {
+            try {
+                const photoRef = ref(storage, photoUrl);
+                await deleteObject(photoRef);
+            } catch (error) {
+                // If the object does not exist, we can ignore the error
+                if (error instanceof Error && 'code' in error && (error as any).code !== 'storage/object-not-found') {
+                    console.error('Error deleting photo from storage:', error);
+                    // Decide if you want to stop the whole process or just log the error
+                }
+            }
+        }
+
+        // Update the document in Firestore
         await updateDoc(docRef, {
             ...data,
-            date: new Date(data.date).toISOString().split('T')[0],
-            deadline: new Date(data.deadline).toISOString().split('T')[0],
-            photos: photoURLs,
+            date: new Date(data.date),
+            deadline: new Date(data.deadline),
+            photos: finalPhotoURLs,
         });
 
         revalidatePath('/inspections');
         revalidatePath(`/inspections/${id}/edit`);
         revalidatePath('/dashboard');
         return { success: true, message: 'Inspeção atualizada com sucesso.' };
+
     } catch (error) {
         console.error('Error updating inspection:', error);
-        return { success: false, message: 'Falha ao atualizar inspeção.' };
+        const errorMessage = error instanceof Error ? error.message : 'Falha ao atualizar inspeção.';
+        return { success: false, message: errorMessage };
     }
 }
 

@@ -533,7 +533,7 @@ export default function NewInspectionPage() {
                           mode="single"
                           selected={field.value ? new Date(field.value) : undefined}
                           onSelect={(date) => field.onChange(date?.toISOString())}
-                          disabled={(date) => date < new Date()}
+                          disabled={(date) => new Date(date) < new Date(new Date().setHours(0,0,0,0))}
                           initialFocus
                           locale={ptBR}
                         />

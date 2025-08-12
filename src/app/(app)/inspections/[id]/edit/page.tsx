@@ -94,8 +94,12 @@ export default function EditInspectionPage() {
             setRiskTypes(riskTypesData);
             form.reset({
                 ...inspectionData,
+                auditor: inspectionData.auditor,
+                area: inspectionData.area,
+                riskType: inspectionData.riskType,
                 date: new Date(inspectionData.date).toISOString(),
                 deadline: new Date(inspectionData.deadline).toISOString(),
+                photos: inspectionData.photos || [],
             });
             if (inspectionData.photos) {
                 setPhotoPreviews(inspectionData.photos);
@@ -205,7 +209,7 @@ export default function EditInspectionPage() {
     } else {
       toast({
         title: 'Erro',
-        description: 'Falha ao atualizar inspeção.',
+        description: result.message || 'Falha ao atualizar inspeção.',
         variant: 'destructive',
       });
     }
@@ -519,5 +523,4 @@ export default function EditInspectionPage() {
     </Card>
   );
 }
-
     
