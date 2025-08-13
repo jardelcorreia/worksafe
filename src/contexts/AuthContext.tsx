@@ -14,6 +14,7 @@ import {
   signOut,
   onAuthStateChanged,
   type User,
+  type AuthError,
 } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 
@@ -44,9 +45,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (currentUser) {
         if (currentUser.email === ADMIN_EMAIL) {
           setRole('admin');
+          localStorage.removeItem('worksafe-role');
         } else {
-          // If a user is logged in but is not the admin, log them out to prevent inconsistent states.
-          // This handles cases where an auditor user might exist in Firebase but shouldn't be managed this way.
+          // If a user is logged in but is not the admin, log them out.
           signOut(auth);
           setRole(null);
         }
@@ -68,7 +69,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (newRole: 'admin' | 'auditor', password?: string): Promise<boolean> => {
     setLoading(true);
     try {
-      await signOut(auth); // Ensure any previous session is cleared
+      // Always sign out first to ensure a clean state
+      if (auth.currentUser) {
+        await signOut(auth);
+      }
       localStorage.removeItem('worksafe-role');
 
 
@@ -77,21 +81,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           throw new Error('A senha é obrigatória para o administrador.');
         }
         await signInWithEmailAndPassword(auth, ADMIN_EMAIL, password);
-        // onAuthStateChanged will set the role
+        // onAuthStateChanged will set the role and user state
         return true;
       }
 
       if (newRole === 'auditor') {
         // For auditor, we don't authenticate with Firebase. We just set the role locally.
         setRole('auditor');
-        setUser(null);
+        setUser(null); // Ensure no firebase user is associated
         localStorage.setItem('worksafe-role', 'auditor');
         return true;
       }
 
       return false;
     } catch (error) {
-      console.error('Login failed:', error);
+      const authError = error as AuthError;
+      if (authError.code !== 'auth/invalid-credential') {
+        console.error('Login failed with unexpected error:', authError);
+      }
       setRole(null);
       return false;
     } finally {
@@ -113,24 +120,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let createdSession = false;
 
     try {
-        if (!tempUser || tempUser.email !== ADMIN_EMAIL) {
-            const userCredential = await signInWithEmailAndPassword(auth, ADMIN_EMAIL, oldPass);
-            tempUser = userCredential.user;
-            createdSession = true;
-        }
+        // Temporarily sign in to re-authenticate and get a fresh user object
+        const userCredential = await signInWithEmailAndPassword(auth, ADMIN_EMAIL, oldPass);
+        tempUser = userCredential.user;
+        createdSession = true;
 
         if (tempUser) {
             await updatePassword(tempUser, newPass);
-            if (createdSession) {
-              await signOut(auth);
-            }
+            // Sign out immediately after password change to end the temporary session
+            await signOut(auth);
             return true;
         }
         return false;
 
     } catch (error: any) {
-        console.error('Password change error:', error);
-        // Ensure user is signed out in case of failure during a temporary session
+        const authError = error as AuthError;
+        // Don't log expected errors for wrong password
+        if (authError.code !== 'auth/invalid-credential') {
+            console.error('Password change error:', authError);
+        }
+        // Ensure user is signed out in case of any failure during a temporary session
         if (createdSession && auth.currentUser) {
             await signOut(auth);
         }
