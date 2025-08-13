@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -32,6 +32,8 @@ import {
 } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { Logo } from '@/components/icons';
+import { Loader2 } from 'lucide-react';
+
 
 const adminLoginSchema = z.object({
   password: z.string().min(1, 'A senha é obrigatória.'),
@@ -39,9 +41,10 @@ const adminLoginSchema = z.object({
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login } = useAuth();
+  const { login, role, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('auditor');
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   const form = useForm<z.infer<typeof adminLoginSchema>>({
     resolver: zodResolver(adminLoginSchema),
@@ -50,13 +53,30 @@ export default function LoginPage() {
     },
   });
 
-  const handleAuditorLogin = () => {
-    login('auditor');
-    router.push('/dashboard');
+  useEffect(() => {
+    if (!authLoading && role) {
+      router.replace('/dashboard');
+    }
+  }, [role, authLoading, router]);
+
+  const handleAuditorLogin = async () => {
+    setIsLoggingIn(true);
+    const success = await login('auditor');
+    if (success) {
+      router.push('/dashboard');
+    } else {
+      toast({
+        title: 'Falha no Login',
+        description: 'Não foi possível entrar como auditor.',
+        variant: 'destructive',
+      });
+      setIsLoggingIn(false);
+    }
   };
 
-  const handleAdminLogin = (values: z.infer<typeof adminLoginSchema>) => {
-    const success = login('admin', values.password);
+  const handleAdminLogin = async (values: z.infer<typeof adminLoginSchema>) => {
+    setIsLoggingIn(true);
+    const success = await login('admin', values.password);
     if (success) {
       router.push('/dashboard');
     } else {
@@ -69,8 +89,17 @@ export default function LoginPage() {
         type: 'manual',
         message: 'Senha incorreta.',
       });
+      setIsLoggingIn(false);
     }
   };
+
+  if (authLoading || (!authLoading && role)) {
+    return (
+      <div className="flex min-h-screen w-full items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen w-full bg-background">
@@ -116,8 +145,16 @@ export default function LoginPage() {
                       <Button 
                         className="w-full h-11 font-medium" 
                         onClick={handleAuditorLogin}
+                        disabled={isLoggingIn}
                       >
-                        Entrar como Auditor
+                         {isLoggingIn && activeTab === 'auditor' ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Entrando...
+                            </>
+                          ) : (
+                            'Entrar como Auditor'
+                          )}
                       </Button>
                     </CardFooter>
                   </Card>
@@ -159,9 +196,16 @@ export default function LoginPage() {
                           <Button 
                             type="submit" 
                             className="w-full h-11 font-medium" 
-                            disabled={form.formState.isSubmitting}
+                            disabled={isLoggingIn}
                           >
-                            {form.formState.isSubmitting ? 'Entrando...' : 'Entrar como Admin'}
+                             {isLoggingIn && activeTab === 'admin' ? (
+                              <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Entrando...
+                              </>
+                            ) : (
+                              'Entrar como Admin'
+                            )}
                           </Button>
                         </CardFooter>
                       </Card>
@@ -231,8 +275,16 @@ export default function LoginPage() {
                     <Button 
                       className="w-full h-12 text-base font-medium" 
                       onClick={handleAuditorLogin}
+                      disabled={isLoggingIn}
                     >
-                      Entrar como Auditor
+                      {isLoggingIn && activeTab === 'auditor' ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Entrando...
+                            </>
+                          ) : (
+                            'Entrar como Auditor'
+                          )}
                     </Button>
                   </CardFooter>
                 </Card>
@@ -274,11 +326,11 @@ export default function LoginPage() {
                         <Button 
                           type="submit" 
                           className="w-full h-12 text-base font-medium" 
-                          disabled={form.formState.isSubmitting}
+                          disabled={isLoggingIn}
                         >
-                          {form.formState.isSubmitting ? (
+                          {isLoggingIn && activeTab === 'admin' ? (
                             <>
-                              <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-background border-r-transparent" />
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                               Entrando...
                             </>
                           ) : (

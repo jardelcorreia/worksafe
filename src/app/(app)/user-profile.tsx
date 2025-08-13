@@ -16,25 +16,25 @@ import { HardHat, UserCog } from 'lucide-react';
 
 export function UserProfile() {
   const router = useRouter();
-  const { role, logout, loading } = useAuth();
+  const { role, logout, loading, user } = useAuth();
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     router.push('/login');
   };
   
   const userDetails: Record<NonNullable<Role>, { name: string; email: string }> = {
     admin: {
       name: 'Usuário Admin',
-      email: 'admin@worksafe.com',
+      email: user?.email || 'admin@worksafe.com',
     },
     auditor: {
       name: 'Usuário Auditor',
-      email: 'auditor@worksafe.com',
+      email: user?.email || 'auditor@worksafe.com',
     },
   };
 
-  if (loading || !role) {
+  if (loading) {
     return (
         <div className="flex items-center gap-3 p-2">
             <Skeleton className="h-10 w-10 rounded-full" />
@@ -44,6 +44,10 @@ export function UserProfile() {
             </div>
           </div>
     )
+  }
+
+  if (!role) {
+    return null; // Don't render if not logged in
   }
 
   const currentUser = userDetails[role];

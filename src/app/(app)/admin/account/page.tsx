@@ -60,7 +60,7 @@ export default function AccountPage() {
     } else {
       toast({
         title: 'Erro',
-        description: 'A senha atual está incorreta ou ocorreu um erro.',
+        description: 'A senha atual está incorreta. Se o erro persistir, saia e entre novamente.',
         variant: 'destructive',
       });
       form.setError('currentPassword', {

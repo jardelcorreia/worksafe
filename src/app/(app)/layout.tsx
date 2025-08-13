@@ -16,6 +16,7 @@ import {
   HardHat,
   UserCog,
   Bug,
+  Loader2,
 } from 'lucide-react';
 import {
   SidebarProvider,
@@ -117,13 +118,7 @@ function AppContent({ children }: { children: React.ReactNode }) {
   if (loading || !role) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div className="flex items-center space-x-4">
-            <Skeleton className="h-12 w-12 rounded-full" />
-            <div className="space-y-2">
-                <Skeleton className="h-4 w-[250px]" />
-                <Skeleton className="h-4 w-[200px]" />
-            </div>
-        </div>
+        <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
   }

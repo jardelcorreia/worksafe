@@ -12,6 +12,7 @@ import {
   updatePassword,
   signOut,
   onAuthStateChanged,
+  type User,
 } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 
@@ -19,89 +20,117 @@ export type Role = 'admin' | 'auditor' | null;
 
 interface AuthContextType {
   role: Role;
-  login: (role: 'admin' | 'auditor', password?: string) => boolean;
+  login: (role: 'admin' | 'auditor', password?: string) => Promise<boolean>;
   logout: () => void;
   changePassword: (oldPass: string, newPass: string) => Promise<boolean>;
   loading: boolean;
+  user: User | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const ADMIN_PASS_STORAGE_KEY = 'adminPassword_fallback'; // Renamed to avoid conflict if user ever used the old system
 const ADMIN_EMAIL = 'admin@worksafe.com';
+const AUDITOR_EMAIL = 'auditor@worksafe.com';
+const AUDITOR_DUMMY_PASS = 'auditor-placeholder-password'; // Dummy password for auditor login
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [role, setRole] = useState<Role>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    try {
-      const storedRole = localStorage.getItem('userRole') as Role;
-      if (storedRole) {
-        setRole(storedRole);
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      if (currentUser) {
+        if (currentUser.email === ADMIN_EMAIL) {
+          setRole('admin');
+        } else if (currentUser.email === AUDITOR_EMAIL) {
+          setRole('auditor');
+        }
+      } else {
+        setRole(null);
       }
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const login = async (newRole: 'admin' | 'auditor', password?: string): Promise<boolean> => {
+    setLoading(true);
+    try {
+      await signOut(auth); // Ensure any previous session is cleared
+
+      if (newRole === 'admin') {
+        if (!password) {
+          throw new Error('A senha é obrigatória para o administrador.');
+        }
+        await signInWithEmailAndPassword(auth, ADMIN_EMAIL, password);
+        setRole('admin');
+        return true;
+      }
+
+      if (newRole === 'auditor') {
+        // Since auditors don't have a password in the UI, we sign them in with a known credential.
+        // Ensure this user exists in Firebase Auth.
+        try {
+            await signInWithEmailAndPassword(auth, AUDITOR_EMAIL, AUDITOR_DUMMY_PASS);
+        } catch (error: any) {
+            // Handle case where auditor user might not exist or password is wrong
+            console.error("Auditor login failed. Ensure 'auditor@worksafe.com' exists with the placeholder password.", error);
+            // Fallback to local-only role for auditor if Firebase login fails
+            setRole('auditor');
+            setUser(null); // No firebase user in this case
+            return true;
+        }
+        setRole('auditor');
+        return true;
+      }
+
+      return false;
     } catch (error) {
-      console.error("Could not access local storage", error)
+      console.error('Login failed:', error);
+      setRole(null);
+      return false;
     } finally {
       setLoading(false);
     }
-  }, []);
-
-  const login = (newRole: 'admin' | 'auditor', password?: string) => {
-    if (newRole === 'admin') {
-      // This is a simplified local check. The real password check is in changePassword.
-      // For basic login, we just check if a password was provided.
-      if (!password) {
-        return false;
-      }
-      // For added robustness, you might perform a silent Firebase login here as well,
-      // but to keep frontend simple as requested, we'll keep it local.
-    }
-    setRole(newRole);
-    try {
-        localStorage.setItem('userRole', newRole);
-    } catch (error) {
-        console.error("Could not access local storage", error)
-    }
-    return true;
   };
 
-  const logout = () => {
+
+  const logout = async () => {
+    await signOut(auth);
     setRole(null);
-    try {
-        localStorage.removeItem('userRole');
-    } catch (error) {
-        console.error("Could not access local storage", error)
-    }
+    setUser(null);
   };
 
   const changePassword = async (oldPass: string, newPass: string): Promise<boolean> => {
     try {
-      // 1. Sign in the user silently with their old password
-      const userCredential = await signInWithEmailAndPassword(auth, ADMIN_EMAIL, oldPass);
-      const user = userCredential.user;
-
-      if (user) {
-        // 2. If sign-in is successful, update the password
-        await updatePassword(user, newPass);
-        
-        // 3. Sign out immediately after the operation
-        await signOut(auth);
-        
+      if (!auth.currentUser || auth.currentUser.email !== ADMIN_EMAIL) {
+        // If the current user is not the admin, we need to re-authenticate
+        const userCredential = await signInWithEmailAndPassword(auth, ADMIN_EMAIL, oldPass);
+        if (userCredential.user) {
+          await updatePassword(userCredential.user, newPass);
+          await signOut(auth); // Sign out after password change
+          return true;
+        }
+        return false;
+      } else {
+        // If the admin is already signed in, we can update the password directly
+        await updatePassword(auth.currentUser, newPass);
         return true;
       }
-      return false;
     } catch (error) {
-      console.error("Password change error:", error);
-      // Ensure user is signed out in case of failure during update
-      if (auth.currentUser) {
+      console.error('Password change error:', error);
+       // Ensure user is signed out in case of failure
+       if (auth.currentUser) {
         await signOut(auth);
       }
       return false;
     }
   };
 
-  const value = { role, login, logout, loading, changePassword };
+  const value = { role, login, logout, loading, changePassword, user };
 
   return (
     <AuthContext.Provider value={value}>
