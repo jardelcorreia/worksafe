@@ -27,7 +27,7 @@ import { useAuth } from '@/contexts/AuthContext';
 const passwordSchema = z
   .object({
     currentPassword: z.string().min(1, 'Senha atual é obrigatória.'),
-    newPassword: z.string().min(4, 'Nova senha deve ter pelo menos 4 caracteres.'),
+    newPassword: z.string().min(6, 'Nova senha deve ter pelo menos 6 caracteres.'),
     confirmPassword: z.string(),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
@@ -48,8 +48,8 @@ export default function AccountPage() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof passwordSchema>) {
-    const success = changePassword(values.currentPassword, values.newPassword);
+  async function onSubmit(values: z.infer<typeof passwordSchema>) {
+    const success = await changePassword(values.currentPassword, values.newPassword);
 
     if (success) {
       toast({
@@ -60,7 +60,7 @@ export default function AccountPage() {
     } else {
       toast({
         title: 'Erro',
-        description: 'A senha atual está incorreta.',
+        description: 'A senha atual está incorreta ou ocorreu um erro.',
         variant: 'destructive',
       });
       form.setError('currentPassword', {
