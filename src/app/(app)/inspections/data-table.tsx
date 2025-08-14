@@ -116,6 +116,7 @@ function ImageDialog({ src, open, onOpenChange }: { src: string; open: boolean; 
 
 function DetailsModal({ inspection, children }: { inspection: SafetyInspection, children: React.ReactNode }) {
     const [expandedImage, setExpandedImage] = React.useState<string | null>(null);
+    const { role } = useAuth();
 
     const handleOpenChange = (open: boolean) => {
         if (!open) {
@@ -141,9 +142,11 @@ function DetailsModal({ inspection, children }: { inspection: SafetyInspection, 
             <div>
               <strong>Área:</strong> {inspection.area}
             </div>
-            <div>
-              <strong>Auditor:</strong> {inspection.auditor}
-            </div>
+            {role === 'admin' && (
+              <div>
+                <strong>Auditor:</strong> {inspection.auditor}
+              </div>
+            )}
             <div>
               <strong>Tipo de Risco:</strong> {inspection.riskType}
             </div>
@@ -450,9 +453,11 @@ function MobileInspectionCard({ inspection, table }: { inspection: SafetyInspect
           >
             {inspection.status}
           </Badge>
-          <p className="text-xs text-muted-foreground">
-            {inspection.auditor}
-          </p>
+          {role === 'admin' && (
+            <p className="text-xs text-muted-foreground">
+              {inspection.auditor}
+            </p>
+          )}
         </div>
       </CardContent>
     </Card>
@@ -556,13 +561,21 @@ export function DataTable<TData extends { id: string }, TValue>({
   data,
   setData,
 }: DataTableProps<TData, TValue>) {
+  const { role } = useAuth();
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({
     correctiveAction: false,
     riskType: false,
-    auditor: true,
+    auditor: role === 'admin',
   });
+
+  React.useEffect(() => {
+    setColumnVisibility(prev => ({
+        ...prev,
+        auditor: role === 'admin'
+    }));
+  }, [role]);
 
   const table = useReactTable({
     data,
