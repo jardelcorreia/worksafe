@@ -23,14 +23,14 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.onNewInspection = void 0;
+exports.sendInspectionNotification = void 0;
 const firestore_1 = require("firebase-functions/v2/firestore");
 const logger = __importStar(require("firebase-functions/logger"));
 const admin = __importStar(require("firebase-admin"));
 admin.initializeApp();
 // Assume que os tokens FCM dos dispositivos estão armazenados em uma coleção 'fcmTokens'
 // com cada documento tendo um campo 'token'.
-exports.onNewInspection = (0, firestore_1.onDocumentCreated)("inspections/{inspectionId}", async (event) => {
+exports.sendInspectionNotification = (0, firestore_1.onDocumentCreated)("inspections/{inspectionId}", async (event) => {
     const snapshot = event.data;
     if (!snapshot) {
         logger.log("Nenhum dado encontrado no evento da inspeção.");
