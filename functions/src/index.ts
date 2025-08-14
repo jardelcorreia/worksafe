@@ -7,7 +7,7 @@ admin.initializeApp();
 
 // Assume que os tokens FCM dos dispositivos estão armazenados em uma coleção 'fcmTokens'
 // com cada documento tendo um campo 'token'.
-export const onNewInspection = onDocumentCreated("inspections/{inspectionId}", async (event) => {
+export const sendInspectionNotification = onDocumentCreated("inspections/{inspectionId}", async (event) => {
   const snapshot = event.data;
   if (!snapshot) {
     logger.log("Nenhum dado encontrado no evento da inspeção.");
