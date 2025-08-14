@@ -34,19 +34,19 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.onNewInspection = void 0;
-const functions = __importStar(require("firebase-functions"));
+const firestore_1 = require("firebase-functions/v2/firestore");
+const logger = __importStar(require("firebase-functions/logger"));
 const admin = __importStar(require("firebase-admin"));
 admin.initializeApp();
 // Assume que os tokens FCM dos dispositivos estão armazenados em uma coleção 'fcmTokens'
 // com cada documento tendo um campo 'token'.
-exports.onNewInspection = functions.firestore
-    .document("inspections/{inspectionId}")
-    .onCreate(async (snapshot, _context) => {
-    const inspectionData = snapshot.data();
-    if (!inspectionData) {
-        functions.logger.log("Nenhum dado encontrado na inspeção.");
+exports.onNewInspection = (0, firestore_1.onDocumentCreated)("inspections/{inspectionId}", async (event) => {
+    const snapshot = event.data;
+    if (!snapshot) {
+        logger.log("Nenhum dado encontrado no evento da inspeção.");
         return;
     }
+    const inspectionData = snapshot.data();
     const area = inspectionData.area || "Área não especificada";
     const payload = {
         notification: {
@@ -55,34 +55,34 @@ exports.onNewInspection = functions.firestore
             click_action: "/inspections", // Opcional: para onde o usuário é direcionado
         },
     };
-    functions.logger.log("Preparando para enviar notificação:", payload);
+    logger.log("Preparando para enviar notificação:", payload);
     try {
         const tokensSnapshot = await admin.firestore().collection("fcmTokens").get();
         if (tokensSnapshot.empty) {
-            functions.logger.log("Nenhum token de dispositivo encontrado.");
+            logger.log("Nenhum token de dispositivo encontrado.");
             return;
         }
         const tokens = tokensSnapshot.docs.map((doc) => doc.data().token);
-        functions.logger.log(`Enviando notificação para ${tokens.length} dispositivo(s).`);
+        logger.log(`Enviando notificação para ${tokens.length} dispositivo(s).`);
         const response = await admin.messaging().sendToDevice(tokens, payload);
-        functions.logger.log("Resposta do FCM:", response);
+        logger.log("Resposta do FCM:", response);
         // Limpeza de tokens inválidos (opcional, mas recomendado)
         response.results.forEach((result, index) => {
             const error = result.error;
             if (error) {
-                functions.logger.error("Falha ao enviar notificação para", tokens[index], error);
+                logger.error("Falha ao enviar notificação para", tokens[index], error);
                 if (error.code === "messaging/invalid-registration-token" ||
                     error.code === "messaging/registration-token-not-registered") {
                     const invalidToken = tokens[index];
                     const tokenDocRef = tokensSnapshot.docs[index].ref;
-                    functions.logger.log(`Removendo token inválido: ${invalidToken}`);
+                    logger.log(`Removendo token inválido: ${invalidToken}`);
                     tokenDocRef.delete();
                 }
             }
         });
     }
     catch (error) {
-        functions.logger.error("Erro ao enviar notificação:", error);
+        logger.error("Erro ao enviar notificação:", error);
     }
 });
 //# sourceMappingURL=index.js.map

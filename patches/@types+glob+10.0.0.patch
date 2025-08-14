@@ -1,0 +1,22 @@
+diff --git a/node_modules/@types/glob/index.d.ts b/node_modules/@types/glob/index.d.ts
+index e60487b..e1b38c2 100644
+--- a/node_modules/@types/glob/index.d.ts
++++ b/node_modules/@types/glob/index.d.ts
+@@ -26,7 +26,7 @@ declare namespace glob {
+         ? Omit<T, "nodir" | "nounique" | "nosort"> & { nodir: true; nounique: true; nosort: true }
+         : T;
+ 
+-    interface IOptions extends minimatch.IOptions {
++    interface IOptions {
+         cwd?: string | undefined;
+         root?: string | undefined;
+         dot?: boolean | undefined;
+@@ -71,7 +71,7 @@ declare namespace glob {
+         maxDepth?: number | undefined;
+         absolute?: boolean | undefined;
+ 
+-        minimatch: minimatch.IMinimatch;
++        minimatch: any;
+         options: IOptions;
+         subwalk(pattern: string, cb: (err: Error | null, res: string[]) => void): void;
+         subwalkSync(pattern: string): string[];
