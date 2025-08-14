@@ -465,99 +465,102 @@ function MobileInspectionCard({ inspection, table }: { inspection: SafetyInspect
 }
 
 function DataTableFilters({ table }: { table: TableType<any> }) {
-  const columnNames: { [key: string]: string } = {
-    date: 'Data',
-    area: 'Área',
-    riskType: 'Tipo de Risco',
-    description: 'Descrição',
-    correctiveAction: 'Ação Corretiva',
-    potential: 'Potencial',
-    status: 'Status',
-    auditor: 'Auditor',
-    actions: 'Opções',
-  };
+    const { role } = useAuth();
+    const columnNames: { [key: string]: string } = {
+        date: 'Data',
+        area: 'Área',
+        riskType: 'Tipo de Risco',
+        description: 'Descrição',
+        correctiveAction: 'Ação Corretiva',
+        potential: 'Potencial',
+        status: 'Status',
+        auditor: 'Auditor',
+        actions: 'Opções',
+    };
 
-  return (
-    <div className="space-y-3 sm:space-y-0 sm:flex sm:items-center sm:gap-4">
-      <Input
-        placeholder="Filtrar por descrição..."
-        value={(table.getColumn('description')?.getFilterValue() as string) ?? ''}
-        onChange={(event) =>
-          table.getColumn('description')?.setFilterValue(event.target.value)
-        }
-        className="w-full sm:max-w-sm"
-      />
-      
-      <div className="grid grid-cols-2 gap-3 sm:flex sm:gap-4">
-        <Select
-          value={(table.getColumn('potential')?.getFilterValue() as string) ?? ''}
-          onValueChange={(value) =>
-            table.getColumn('potential')?.setFilterValue(value === 'all' ? '' : value)
-          }
-        >
-          <SelectTrigger className="w-full sm:w-[140px]">
-            <SelectValue placeholder="Potencial" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos</SelectItem>
-            {PotentialLevels.map((level) => (
-              <SelectItem key={level} value={level}>
-                {level}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+    return (
+        <div className="space-y-3 sm:space-y-0 sm:flex sm:items-center sm:gap-4">
+        <Input
+            placeholder="Filtrar por descrição..."
+            value={(table.getColumn('description')?.getFilterValue() as string) ?? ''}
+            onChange={(event) =>
+            table.getColumn('description')?.setFilterValue(event.target.value)
+            }
+            className="w-full sm:max-w-sm"
+        />
+        
+        <div className="grid grid-cols-2 gap-3 sm:flex sm:gap-4">
+            <Select
+            value={(table.getColumn('potential')?.getFilterValue() as string) ?? ''}
+            onValueChange={(value) =>
+                table.getColumn('potential')?.setFilterValue(value === 'all' ? '' : value)
+            }
+            >
+            <SelectTrigger className="w-full sm:w-[140px]">
+                <SelectValue placeholder="Potencial" />
+            </SelectTrigger>
+            <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                {PotentialLevels.map((level) => (
+                <SelectItem key={level} value={level}>
+                    {level}
+                </SelectItem>
+                ))}
+            </SelectContent>
+            </Select>
 
-        <Select
-          value={(table.getColumn('status')?.getFilterValue() as string) ?? ''}
-          onValueChange={(value) =>
-            table.getColumn('status')?.setFilterValue(value === 'all' ? '' : value)
-          }
-        >
-          <SelectTrigger className="w-full sm:w-[140px]">
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos</SelectItem>
-            {StatusLevels.map((level) => (
-              <SelectItem key={level} value={level}>
-                {level}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+            <Select
+            value={(table.getColumn('status')?.getFilterValue() as string) ?? ''}
+            onValueChange={(value) =>
+                table.getColumn('status')?.setFilterValue(value === 'all' ? '' : value)
+            }
+            >
+            <SelectTrigger className="w-full sm:w-[140px]">
+                <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                {StatusLevels.map((level) => (
+                <SelectItem key={level} value={level}>
+                    {level}
+                </SelectItem>
+                ))}
+            </SelectContent>
+            </Select>
+        </div>
 
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" className="w-full sm:w-auto hidden md:flex">
-            Colunas <ChevronDown className="ml-2 h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          {table
-            .getAllColumns()
-            .filter((column) => column.getCanHide())
-            .map((column) => {
-              return (
-                <DropdownMenuCheckboxItem
-                  key={column.id}
-                  className="capitalize"
-                  checked={column.getIsVisible()}
-                  onCheckedChange={(value) => column.toggleVisibility(!!value)}
-                >
-                  {columnNames[column.id] || column.id}
-                </DropdownMenuCheckboxItem>
-              );
-            })}
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
-  );
+        {role === 'admin' && (
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="w-full sm:w-auto hidden md:flex">
+                    Colunas <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                {table
+                    .getAllColumns()
+                    .filter((column) => column.getCanHide())
+                    .map((column) => {
+                    return (
+                        <DropdownMenuCheckboxItem
+                        key={column.id}
+                        className="capitalize"
+                        checked={column.getIsVisible()}
+                        onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                        >
+                        {columnNames[column.id] || column.id}
+                        </DropdownMenuCheckboxItem>
+                    );
+                    })}
+                </DropdownMenuContent>
+            </DropdownMenu>
+        )}
+        </div>
+    );
 }
 
 export function DataTable<TData extends { id: string }, TValue>({
-  columns,
+  columns: initialColumns,
   data,
   setData,
 }: DataTableProps<TData, TValue>) {
@@ -567,15 +570,17 @@ export function DataTable<TData extends { id: string }, TValue>({
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({
     correctiveAction: false,
     riskType: false,
-    auditor: role === 'admin',
   });
 
-  React.useEffect(() => {
-    setColumnVisibility(prev => ({
-        ...prev,
-        auditor: role === 'admin'
-    }));
-  }, [role]);
+  const columns = React.useMemo(
+    () =>
+      role === 'admin'
+        ? (initialColumns as ColumnDef<SafetyInspection>[])
+        : (initialColumns as ColumnDef<SafetyInspection>[]).filter(
+            (c) => (c as any).accessorKey !== 'auditor'
+          ),
+    [initialColumns, role]
+  );
 
   const table = useReactTable({
     data,
