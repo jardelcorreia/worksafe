@@ -529,38 +529,39 @@ function DataTableFilters({ table }: { table: TableType<any> }) {
             </Select>
         </div>
 
-        {role === 'admin' && (
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="w-full sm:w-auto hidden md:flex">
-                    Colunas <ChevronDown className="ml-2 h-4 w-4" />
-                </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                {table
-                    .getAllColumns()
-                    .filter((column) => column.getCanHide())
-                    .map((column) => {
-                    return (
-                        <DropdownMenuCheckboxItem
-                        key={column.id}
-                        className="capitalize"
-                        checked={column.getIsVisible()}
-                        onCheckedChange={(value) => column.toggleVisibility(!!value)}
-                        >
-                        {columnNames[column.id] || column.id}
-                        </DropdownMenuCheckboxItem>
-                    );
-                    })}
-                </DropdownMenuContent>
-            </DropdownMenu>
-        )}
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="w-full sm:w-auto hidden md:flex">
+                Colunas <ChevronDown className="ml-2 h-4 w-4" />
+            </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+            {table
+                .getAllColumns()
+                .filter(
+                    (column) =>
+                    column.getCanHide() && (role === 'admin' || column.id !== 'auditor')
+                )
+                .map((column) => {
+                return (
+                    <DropdownMenuCheckboxItem
+                    key={column.id}
+                    className="capitalize"
+                    checked={column.getIsVisible()}
+                    onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                    >
+                    {columnNames[column.id] || column.id}
+                    </DropdownMenuCheckboxItem>
+                );
+                })}
+            </DropdownMenuContent>
+        </DropdownMenu>
         </div>
     );
 }
 
 export function DataTable<TData extends { id: string }, TValue>({
-  columns: initialColumns,
+  columns,
   data,
   setData,
 }: DataTableProps<TData, TValue>) {
@@ -570,17 +571,9 @@ export function DataTable<TData extends { id: string }, TValue>({
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({
     correctiveAction: false,
     riskType: false,
+    auditor: role === 'admin',
   });
 
-  const columns = React.useMemo(
-    () =>
-      role === 'admin'
-        ? (initialColumns as ColumnDef<SafetyInspection>[])
-        : (initialColumns as ColumnDef<SafetyInspection>[]).filter(
-            (c) => (c as any).accessorKey !== 'auditor'
-          ),
-    [initialColumns, role]
-  );
 
   const table = useReactTable({
     data,
