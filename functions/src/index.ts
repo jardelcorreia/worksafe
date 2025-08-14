@@ -17,7 +17,7 @@ export const onNewInspection = onDocumentCreated("inspections/{inspectionId}", a
   const inspectionData = snapshot.data();
   const area = inspectionData.area || "Área não especificada";
 
-  const payload: admin.messaging.MessagingPayload = {
+  const payload = {
     notification: {
       title: "Nova Inspeção Registrada",
       body: `Uma nova inspeção na área '${area}' foi registrada.`,
