@@ -1,3 +1,4 @@
+
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 
@@ -7,7 +8,7 @@ admin.initializeApp();
 // com cada documento tendo um campo 'token'.
 export const onNewInspection = functions.firestore
   .document("inspections/{inspectionId}")
-  .onCreate(async (snapshot, context) => {
+  .onCreate(async (snapshot) => {
     const inspectionData = snapshot.data();
     if (!inspectionData) {
       functions.logger.log("Nenhum dado encontrado na inspeção.");
