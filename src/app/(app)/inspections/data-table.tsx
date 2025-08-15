@@ -282,10 +282,12 @@ function ActionsCell({ row, table }: { row: any; table: TableType<SafetyInspecti
                 Ver Detalhes
             </DropdownMenuItem>
         </DetailsModal>
-        <DropdownMenuItem onClick={handleEdit}>
-          <Edit className="mr-2 h-4 w-4" />
-          Editar
-        </DropdownMenuItem>
+        {role === 'admin' && (
+            <DropdownMenuItem onClick={handleEdit}>
+                <Edit className="mr-2 h-4 w-4" />
+                Editar
+            </DropdownMenuItem>
+        )}
         {role === 'admin' && (
             <>
                 <DropdownMenuSeparator />
@@ -389,10 +391,12 @@ function MobileInspectionCard({ inspection, table }: { inspection: SafetyInspect
                     Ver Detalhes
                   </DropdownMenuItem>
                 </DetailsModal>
-                <DropdownMenuItem onClick={handleEdit}>
-                  <Edit className="mr-2 h-4 w-4" />
-                  Editar
-                </DropdownMenuItem>
+                {role === 'admin' && (
+                    <DropdownMenuItem onClick={handleEdit}>
+                      <Edit className="mr-2 h-4 w-4" />
+                      Editar
+                    </DropdownMenuItem>
+                )}
                 {role === 'admin' && (
                     <>
                         <DropdownMenuSeparator />
@@ -561,7 +565,7 @@ function DataTableFilters({ table }: { table: TableType<any> }) {
 }
 
 export function DataTable<TData extends { id: string }, TValue>({
-  columns,
+  columns: initialColumns,
   data,
   setData,
 }: DataTableProps<TData, TValue>) {
@@ -574,6 +578,12 @@ export function DataTable<TData extends { id: string }, TValue>({
     auditor: role === 'admin',
   });
 
+  const columns = React.useMemo(() => {
+    if (role === 'admin') {
+      return initialColumns;
+    }
+    return initialColumns.filter((column: any) => column.accessorKey !== 'auditor');
+  }, [initialColumns, role]);
 
   const table = useReactTable({
     data,
