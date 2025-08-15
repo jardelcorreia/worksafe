@@ -39,6 +39,17 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { addInspection, fetchAuditors, fetchAreas, fetchRiskTypes } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { PotentialLevels, StatusLevels, inspectionSchema, type Auditor, type Area, type RiskType } from '@/lib/types';
@@ -285,7 +296,7 @@ export default function NewInspectionPage() {
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          <form onSubmit={(e) => e.preventDefault()} className="space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <FormField
                 control={form.control}
@@ -638,13 +649,35 @@ export default function NewInspectionPage() {
               >
                 Cancelar
               </Button>
-              <Button 
-                type="submit" 
-                disabled={form.formState.isSubmitting}
-                className="min-w-[150px]"
-              >
-                {form.formState.isSubmitting ? 'Enviando...' : 'Registrar Inspeção'}
-              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                    <Button
+                        disabled={form.formState.isSubmitting}
+                        className="min-w-[150px]"
+                    >
+                        {form.formState.isSubmitting ? 'Enviando...' : 'Registrar Inspeção'}
+                    </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Confirmar Registro</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Você está prestes a registrar uma nova inspeção de segurança.
+                            Por favor, confira todas as informações inseridas. Após a confirmação,
+                            o registro não poderá mais ser editado.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={form.handleSubmit(onSubmit)}
+                            disabled={form.formState.isSubmitting}
+                        >
+                            {form.formState.isSubmitting ? 'Enviando...' : 'Confirmar e Enviar'}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </form>
         </Form>
