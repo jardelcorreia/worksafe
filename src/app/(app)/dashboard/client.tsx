@@ -2,6 +2,7 @@
 'use client';
 
 import { useMemo, useEffect, useState } from 'react';
+import Link from 'next/link';
 import {
   AlertTriangle,
   BarChart2,
@@ -13,6 +14,7 @@ import {
   Clock,
   Calendar as CalendarIcon,
   Sparkles,
+  Plus,
 } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Text } from 'recharts';
 import { format, subMonths } from 'date-fns';
@@ -421,8 +423,20 @@ export function DashboardClient() {
           </div>
         )}
       </div>
+
+       {/* Botão Flutuante para Mobile */}
+       <Button
+        asChild
+        className={cn(
+          "md:hidden fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg",
+          "flex items-center justify-center z-50"
+        )}
+      >
+        <Link href="/inspections/new">
+          <Plus className="h-6 w-6" />
+          <span className="sr-only">Adicionar Nova Inspeção</span>
+        </Link>
+      </Button>
     </div>
   );
 }
-
-    
