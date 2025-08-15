@@ -44,24 +44,47 @@ import { useIsMobile } from '@/hooks/use-mobile';
 
 
 const CustomizedYAxisTick = (props: any) => {
-    const { x, y, payload } = props;
+    const { x, y, payload, width } = props;
     const value = payload.value;
-    const [isMobile, setIsMobile] = useState(false);
-
-    useEffect(() => {
-        const checkMobile = () => setIsMobile(window.innerWidth < 768);
-        checkMobile();
-        window.addEventListener('resize', checkMobile);
-        return () => window.removeEventListener('resize', checkMobile);
-    }, []);
-
-    const maxLength = isMobile ? 10 : 15;
-    const truncatedValue = value.length > maxLength ? `${value.substring(0, maxLength)}...` : value;
-
+  
+    // Simple text wrapper
+    const renderTspan = (text: string, yOffset: number) => {
+      const words = text.split(' ');
+      let line = '';
+      const lines = [];
+  
+      for (let n = 0; n < words.length; n++) {
+        const testLine = line + words[n] + ' ';
+        // This is a rough estimation of text width
+        if (testLine.length * 5 > width) { // 5 is an arbitrary multiplier for font size 9
+          lines.push(line);
+          line = words[n] + ' ';
+        } else {
+          line = testLine;
+        }
+      }
+      lines.push(line);
+  
+      return lines.map((l, i) => (
+        <tspan key={i} x={x} y={y + i * 10} dy={`${i === 0 ? 0 : 0.3}em`} textAnchor="end">
+          {l}
+        </tspan>
+      ));
+    };
+  
     return (
-        <Text {...props} x={x} y={y} width={props.width} title={value} fontSize={11}>
-            {truncatedValue}
-        </Text>
+      <g>
+        <text
+          x={x}
+          y={y}
+          textAnchor="end"
+          fill="#666"
+          fontSize={10}
+          width={width}
+        >
+          {renderTspan(value, y)}
+        </text>
+      </g>
     );
 };
 
@@ -187,14 +210,16 @@ export function DashboardClient() {
           <Card className="hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 pt-4">
               <CardTitle className="text-xs sm:text-sm font-medium leading-tight">
-                Resolvidas
+                Índice de Conformidade
               </CardTitle>
               <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
             </CardHeader>
             <CardContent className="px-4 pb-4">
-              <div className="text-xl sm:text-2xl font-bold text-green-600">{resolvedInspections}</div>
+              <div className="text-xl sm:text-2xl font-bold text-green-600">
+                {totalInspections > 0 ? ((resolvedInspections / totalInspections) * 100).toFixed(1) : '0.0'}%
+                </div>
               <p className="text-xs text-muted-foreground mt-1 leading-tight">
-                {totalInspections > 0 ? ((resolvedInspections / totalInspections) * 100).toFixed(1) : 0}% concluídas
+                {resolvedInspections} de {totalInspections} resolvidas
               </p>
             </CardContent>
           </Card>
@@ -336,17 +361,17 @@ export function DashboardClient() {
                       data={riskTypeChartData} 
                       layout="vertical" 
                       accessibilityLayer
-                      margin={{ top: 5, right: 20, left: 5, bottom: 5 }}
+                      margin={{ top: 5, right: 20, left: 20, bottom: 5 }}
                     >
                       <CartesianGrid horizontal={false} strokeDasharray="3 3" />
                       <YAxis 
                         dataKey="riskType" 
                         type="category" 
                         tickLine={false} 
-                        tickMargin={8} 
+                        tickMargin={5} 
                         axisLine={false} 
-                        width={80}
-                        fontSize={9}
+                        width={120}
+                        interval={0}
                         tick={<CustomizedYAxisTick />}
                       />
                       <XAxis 
