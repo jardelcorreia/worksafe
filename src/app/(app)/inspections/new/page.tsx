@@ -66,6 +66,7 @@ export default function NewInspectionPage() {
   const [riskTypes, setRiskTypes] = useState<RiskType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<z.infer<typeof inspectionSchema>>({
     resolver: zodResolver(inspectionSchema),
@@ -83,6 +84,8 @@ export default function NewInspectionPage() {
       photos: [],
     },
   });
+
+  const { formState: { isDirty } } = form;
 
   useEffect(() => {
     async function loadData() {
@@ -111,6 +114,21 @@ export default function NewInspectionPage() {
     }
     loadData();
   }, [toast]);
+
+  useEffect(() => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (isDirty && !isSubmitting) {
+        event.preventDefault();
+        event.returnValue = ''; // Standard for most browsers
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [isDirty, isSubmitting]);
 
   const validateImageFile = (file: File): string | null => {
     if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
@@ -217,6 +235,7 @@ export default function NewInspectionPage() {
   }, []);
 
   const onSubmit = async (values: z.infer<typeof inspectionSchema>) => {
+    setIsSubmitting(true);
     try {
       values.photos = photoPreviews;
       
@@ -227,6 +246,7 @@ export default function NewInspectionPage() {
           title: 'Sucesso',
           description: result.message || 'Inspeção registrada com sucesso!',
         });
+        form.reset(); // Resets isDirty state
         router.push('/inspections');
       } else {
         throw new Error(result.message || 'Falha ao adicionar inspeção');
@@ -237,6 +257,8 @@ export default function NewInspectionPage() {
         description: error instanceof Error ? error.message : 'Falha ao adicionar inspeção.',
         variant: 'destructive',
       });
+    } finally {
+        setIsSubmitting(false);
     }
   };
 
@@ -645,17 +667,17 @@ export default function NewInspectionPage() {
                 type="button" 
                 variant="outline" 
                 onClick={() => router.back()}
-                disabled={form.formState.isSubmitting}
+                disabled={isSubmitting}
               >
                 Cancelar
               </Button>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                     <Button
-                        disabled={form.formState.isSubmitting}
+                        disabled={isSubmitting}
                         className="min-w-[150px]"
                     >
-                        {form.formState.isSubmitting ? 'Enviando...' : 'Registrar Inspeção'}
+                        {isSubmitting ? 'Enviando...' : 'Registrar Inspeção'}
                     </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
@@ -671,9 +693,9 @@ export default function NewInspectionPage() {
                         <AlertDialogCancel>Cancelar</AlertDialogCancel>
                         <AlertDialogAction
                             onClick={form.handleSubmit(onSubmit)}
-                            disabled={form.formState.isSubmitting}
+                            disabled={isSubmitting}
                         >
-                            {form.formState.isSubmitting ? 'Enviando...' : 'Confirmar e Enviar'}
+                            {isSubmitting ? 'Enviando...' : 'Confirmar e Enviar'}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
